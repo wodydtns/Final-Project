@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminChartDetailDAO">
+	<select id="selectLikeRatio"
+		resultType="kr.or.ddit.vo.CategoryStatVO">
+		SELECT
+		NAME,ROUND(SUM(COUNT_LIKES)/SUM(COUNT_DISLIKES))
+		ratio
+		FROM
+		CATEGORY_STAT
+		GROUP BY NAME
+
+	</select>
+	<select id="selectHoleAvgData"
+		resultType="kr.or.ddit.vo.CategoryStatVO">
+		SELECT
+		NAME,ROUND(AVG_LIKES) avg_likes,ROUND(AVG_DISLIKES)
+		avg_dislikes,ROUND(AVG_COMMENT)
+		avg_comment
+		FROM CATEGORY_STAT
+		where
+		CATE_DATE = '2017'
+	</select>
+	<select id="selectHoleCountData"
+		resultType="kr.or.ddit.vo.CategoryStatVO">
+		SELECT NAME,COUNT,CATE_DATE
+		FROM (SELECT ROWNUM rn, A.*
+		FROM
+		(SELECT NAME,COUNT,CATE_DATE FROM CATEGORY_STAT
+		ORDER BY COUNT DESC) A)
+		B
+		WHERE rn &lt; 11
+	</select>
+	<select id="selectHoleLikesData"
+		resultType="kr.or.ddit.vo.CategoryStatVO">
+		SELECT NAME,COUNT_LIKES,CATE_DATE
+		FROM (SELECT ROWNUM rn,
+		A.*
+		FROM (SELECT NAME,COUNT_LIKES,CATE_DATE FROM CATEGORY_STAT
+		ORDER BY
+		COUNT DESC) A) B
+		WHERE rn &lt; 11
+	</select>
+	<select id="selectHoleDislikesData"
+		resultType="kr.or.ddit.vo.CategoryStatVO">
+		SELECT NAME,COUNT_DISLIKES,CATE_DATE
+		FROM (SELECT ROWNUM rn,
+		A.*
+		FROM (SELECT NAME,COUNT_DISLIKES,CATE_DATE FROM CATEGORY_STAT
+		ORDER
+		BY COUNT DESC) A) B
+		WHERE rn &lt; 11
+	</select>
+	<select id="selectHoleCommentData"
+		resultType="kr.or.ddit.vo.CategoryStatVO">
+		SELECT NAME,COUNT_COMMENT,CATE_DATE
+		FROM (SELECT ROWNUM rn,
+		A.*
+		FROM (SELECT NAME,COUNT_COMMENT,CATE_DATE FROM CATEGORY_STAT
+		ORDER
+		BY COUNT DESC) A) B
+		WHERE rn &lt; 11
+	</select>
+	<select id="selectCorrData"
+		resultType="kr.or.ddit.vo.CorrelationVO">
+		SELECT NAME,LIKES,DISLIKES,
+		COMMENT_COUNT,COMMENTS_DISABLED
+		FROM CORRLELATION
+		WHERE CORR_DATE = '2018'
+	</select>
+	<select id="selectRegData" resultType="kr.or.ddit.vo.RegressionVO">
+		SELECT MAME,LIKES,DISLIKES,COMMENT_COUNT
+		LIKES_COMMENT_COUNT,DISLIKES_COMMENT_COUNT FROM REGRESSION
+		WHERE REG_DATE ='2018'
+	</select>
+</mapper>

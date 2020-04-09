@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.creatorCenter.dao.IPIDAO">
+
+  
+<update id="insertPI" parameterType="PIVO">
+		<selectKey resultType="int" keyProperty="pi_cd" order="BEFORE">
+			SELECT PI_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+			INSERT INTO PI (PI_CD, CATE_CD, LOD_CD, 
+					CREA_EMAIL, PI_NM, PI_INTRO, 
+					PI_ADD_INFO, PI_START, PI_END, PI_CNT, PI_OPEN,
+					 YN_CODE, CLASS_YN) 
+			VALUES (#{pi_cd},
+					#{cate_cd},
+					#{lod_cd},
+					#{crea_email},
+					#{pi_nm},
+					#{pi_intro},
+					#{pi_add_info},
+					#{pi_start},
+					#{pi_end},
+					0,
+					#{pi_open},
+					'YN_C06',
+					'YN_G02')
+</update>
+
+<!-- vo로만들어지지않은 프로퍼티를 이용할 때 hashMap사용-->
+<select id="selectCateList" resultType="CategoryVO">
+	SELECT CATE_CD, CATE_NM FROM CATEGORY 
+</select>
+
+<select id="selectLevelList" resultType="LODVO">
+	SELECT LOD_CD, LOD_NM FROM LOD 
+</select>
+
+<select id="select_My_PI_wait_List" parameterType="String" resultType="PIVO">
+	SELECT *
+	FROM PI_WAIT_LIST 
+	WHERE CREA_EMAIL = #{crea_email}
+</select>
+
+<select id="select_My_PI_ing_List" parameterType="String" resultType="PIVO">
+	SELECT *
+	FROM PI_ING_LIST 
+	WHERE CREA_EMAIL = #{crea_email}
+</select>
+
+
+<select id="select_My_PI_end_List" parameterType="String" resultType="PIVO">
+	SELECT *
+	FROM PI_END_LIST 
+	WHERE CREA_EMAIL = #{crea_email}
+</select>
+
+<resultMap type="piVO" id="piMap" autoMapping="true">
+		<id property="pi_cd" column="PI_CD"/>
+		<association property="pi_att" 
+			javaType="PiAttVO" autoMapping="true" />
+</resultMap>
+<select id="select_My_pi" parameterType="int" resultMap="piMap">
+	SELECT E.*, TEMP_NM, ORI_NM, REV_SIZE, FANCY, MIME
+	FROM (SELECT C.* , D.LOD_NM
+	    FROM (SELECT A.PI_CD, A.CATE_CD, LOD_CD, CREA_EMAIL, PI_NM, PI_INTRO, PI_ADD_INFO, PI_START, PI_END , PI_OPEN, PI_CNT, YN_CODE, CLASS_YN, CATE_NM
+	    FROM PI A LEFT OUTER JOIN CATEGORY B ON (A.CATE_CD = B.CATE_CD)
+	    WHERE A.PI_CD = #{pi_cd})C LEFT OUTER JOIN LOD D ON (C.LOD_CD = D.LOD_CD))E ,PI_ATT F 
+	WHERE E.PI_CD = F.PI_CD
+</select>
+
+
+<update id="updatePI" parameterType="piVO">	
+	UPDATE PI SET CATE_CD = #{cate_cd},
+		LOD_CD = #{lod_cd},
+		PI_NM = #{pi_nm},
+		PI_INTRO = #{pi_intro},
+		PI_ADD_INFO = #{pi_add_info}
+	WHERE PI_CD = #{pi_cd}
+</update>
+
+<update id="addPIlike" parameterType="int">
+	UPDATE PI SET PI_CNT = 
+	(SELECT PI_CNT+1
+	FROM PI)
+	WHERE PI_CD = #{pi_cd}
+</update>
+
+<delete id="deletePI" parameterType="piVO" statementType="CALLABLE">
+		{
+			CALL DELETEPI(#{pi_cd,mode=IN,javaType=INTEGER}, #{rowcnt,mode=OUT,jdbcType=INTEGER})
+		}
+</delete>
+
+<update id="updateClassYN" parameterType="int">
+	UPDATE PI SET CLASS_YN = 'YN_G01'
+	WHERE PI_CD = ${pi_cd}
+</update>
+
+<update id="updatePIstatus" parameterType="map" statementType="CALLABLE">
+	{
+		CALL PICHANGE(#{rowcnt,mode=OUT,jdbcType=INTEGER,javaType=int})
+	}
+</update>
+
+</mapper>

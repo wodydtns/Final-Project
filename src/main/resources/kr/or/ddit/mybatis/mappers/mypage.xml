@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mypage.dao.ImypageDAO">
+	<sql id="studyFrag">
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'creator'.equals(searchVO.searchType)">
+						AND CREA_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"className".equals(searchVO.searchType)'>
+						AND PI_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						AND ( 
+						CREA_EMAIL LIKE '%'||#{searchVO.searchWord}||'%' OR
+						PI_NM LIKE '%'||#{searchVO.searchWord}||'%' )
+					</otherwise>
+				</choose>
+			</if>
+	</sql>
+
+	<!-- 쿠폰 리스트 -->
+	<select id="selectCouponList" parameterType="String"
+		resultType="kr.or.ddit.vo.CouponVO">
+		SELECT A.CP_CD
+		CP_CD,CP_NM,CP_DISC,CP_END_DATE,MEM_EMAIL,YN_CODE
+		FROM COUPON A
+		LEFT
+		OUTER JOIN COUPON_HAVE B ON (A.CP_CD = B.CP_CD)
+		WHERE
+		B.YN_CODE='YN_B02' AND MEM_EMAIL = #{mem_email}
+	</select>
+
+
+	<resultMap type="kr.or.ddit.vo.PaymentVO" id="classMap">
+		<id property="mem_email" column="MEM_EMAIL" />
+		<collection property="classVO"
+			ofType="kr.or.ddit.vo.ClassVO" autoMapping="true"></collection>
+		<collection property="piVO" ofType="kr.or.ddit.vo.PIVO"
+			autoMapping="true"></collection>
+	</resultMap>
+	<select id="selectStudingList" parameterType="kr.or.ddit.vo.PagingVO"
+		resultMap="classMap">
+		
+		
+		SELECT * FROM (SELECT ROWNUM rnum,A.* FROM (SELECT MEM_EMAIL,A.CL_CD,CP_HAVE_CD,PAY_AMT,FINAL_PAY_AMT,PAY_DATE,PRE_CD 
+		,CL_START,CL_END,CL_FEE,CL_LIKE FROM PAYMENT A INNER JOIN CLASS B ON (A.CL_CD = B.CL_CD)) A 
+		LEFT OUTER JOIN PI B ON (A.PRE_CD = B.PI_CD) WHERE MEM_EMAIL = #{searchDetail.mem_email}
+		
+		<include refid="studyFrag"/>
+        )
+        WHERE rnum between #{startRow} and #{endRow}
+	</select>
+	<select id="selectStudingtotal" parameterType="kr.or.ddit.vo.PagingVO"  resultType="int">
+		SELECT count(*)
+		FROM (SELECT *
+		FROM (SELECT ROWNUM
+		rnum,MEM_EMAIL,A.CL_CD,CP_HAVE_CD,PAY_AMT,FINAL_PAY_AMT,PAY_DATE,PRE_CD
+		,CL_START,CL_END,CL_FEE,CL_LIKE FROM PAYMENT A
+		INNER JOIN CLASS B ON
+		(A.CL_CD = B.CL_CD)) A
+		LEFT OUTER JOIN PI B ON (A.PRE_CD = B.PI_CD)
+		WHERE MEM_EMAIL = #{searchDetail.mem_email}
+        )
+        WHERE rnum between #{startRow} and #{endRow}
+	</select>
+	
+	<select id="selectMypageList" parameterType="String"
+		resultType="kr.or.ddit.vo.MypagePropertyVO">
+		SELECT MEM_EMAIL,MEM_NICK,MEM_HP,REG_DATE,
+		(SELECT count(*) FROM COUPON_HAVE
+				WHERE
+				MEM_EMAIL=#{mem_email}) cu_cnt
+				,(SELECT count(*) FROM FAVOR
+				WHERE
+				MEM_EMAIL=#{mem_email}) favor_cnt
+				,
+				(SELECT count(*) FROM PAYMENT
+				WHERE
+				MEM_EMAIL=#{mem_email}) pay_cnt
+		FROM MEMBER 
+		WHERE
+		MEM_EMAIL=#{mem_email}
+
+	</select>
+	<update id="escape" parameterType="kr.or.ddit.vo.EscapeVO" >
+		UPDATE MEMBER
+		SET YN_CODE = 'YN_A01'
+		WHERE mem_email = #{mem_email}
+	</update>
+	<insert id="escapeReasonInsert" parameterType="kr.or.ddit.vo.EscapeVO">
+		INSERT INTO ESCAPE (
+			MEM_EMAIL, ES_REASON
+		) VALUES(
+			#{mem_email}, #{es_reason}
+		)
+	</insert>
+	<update id="updateMemberInfo" parameterType="kr.or.ddit.vo.MypagePropertyVO">
+		UPDATE MEMBER 
+		SET
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(mem_nick)"> 
+		MEM_NICK =  #{mem_nick}	
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(mem_hp)">
+		,MEM_HP = #{mem_hp} 
+		</if>
+		WHERE MEM_EMAIL = #{mem_email}
+</update>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	
+	
+	<!-- Scheduler -->
+	<!-- 1. 주기적으로 실행될 클래스 설정 -->
+	<!-- property name은 jobClass(무조건) fix, value는 사용자가 작성한 class path -->
+	<bean id="trendCrawling"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass"
+			value="kr.or.ddit.admin.crawling.GoogleTrendCrawling"></property>
+	</bean>
+	
+<!-- 	quartz와 스프링컨테이너의 scope가 달라서 스프링컨테이너에 등록되어있는 service를 주입받지 못한다. -->
+<!-- 	Controller는 하위 컨테이너이기 때문에 quartz의 상위 컨테이너에서 주입받을 수 없으므로 -->
+<!-- 	@Controller대신 @Component를 이용해서 주입받는다. -->
+	<bean id="piChange" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="pIstatusController"/> <!-- 어떤 빈의 -->
+		<property name="targetMethod" value="piChange"/> <!-- 어떤메소드를 이용할건지 -->
+	</bean>
+	
+
+	<!-- 2.quartz의 interval time 설정 -->
+	<!-- cron Expression을 통해 스케쥴러 주기 설정 -->
+	<bean id="cronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="trendCrawling" />
+		<property name="cronExpression" value="0 17 16 * * ?" />
+	</bean>
+	
+	<bean id="PIcronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="piChange" />
+		<property name="cronExpression" value="0 17 16 * * ?" />
+	</bean> 
+	
+	<!-- 3.실제 동작하게끔 설정 -->
+	
+	<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<array>
+				<ref bean="cronTrigger"></ref>
+				<ref bean="PIcronTrigger"></ref>
+			</array>
+		</property>
+	</bean>
+
+</beans>

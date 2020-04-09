@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 3. 24.     최효은     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectMemberDAO">
+
+	<sql id="searchFrag">
+		<if test="searchVO!=null">
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				AND MEM_NICK LIKE '%'||#{searchVO.searchWord, jdbcType=VARCHAR}||'%'
+		    </if>
+		</if>
+		<if test="searchDetail!=null">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.yn_code)">
+				AND A.yn_code = #{searchDetail.yn_code, jdbcType=VARCHAR}
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.yn_code2)">
+				AND yn_code2 = #{searchDetail.yn_code2, jdbcType=VARCHAR}
+			</if>
+		</if>
+	</sql>
+
+	<select id="selectMemberCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PM_LIST A LEFT OUTER JOIN MEMBER B ON (A.MEM_EMAIL= B.MEM_EMAIL)
+           	 LEFT JOIN PROJ_LIST C ON (A.PROJ_CD = C.PROJ_CD)
+		WHERE A.PROJ_CD = #{searchDetail.proj_cd}
+        <include refid="searchFrag" />
+	</select>
+	<select id="selectMemberList" parameterType="PagingVO" resultType="PMListVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+                FROM (  SELECT PM_CD, C.PROJ_CD, A.MEM_EMAIL, MEM_NICK, PROJ_LEADER, PM_DATE, YN_CODE2, A.YN_CODE
+                        FROM PM_LIST A LEFT OUTER JOIN MEMBER B ON (A.MEM_EMAIL= B.MEM_EMAIL)
+                             LEFT JOIN PROJ_LIST C ON (A.PROJ_CD = C.PROJ_CD)
+                        WHERE A.PROJ_CD = #{searchDetail.proj_cd}
+                        <include refid="searchFrag" />
+                        ORDER BY YN_CODE DESC, PM_CD, PM_DATE) A) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<insert id="insertMember" parameterType="PMListVO">
+		<selectKey resultType="int" keyProperty="pm_cd" order="BEFORE">
+			SELECT NVL(MAX(PM_CD), 0)+1 FROM PM_LIST
+		</selectKey>
+		INSERT ALL
+		<foreach collection="mem_email_list" item="mem" index="idx">
+			INTO PM_LIST (
+				PM_CD, PROJ_CD, MEM_EMAIL,
+				PM_DATE, YN_CODE2, YN_CODE
+			) VALUES ( 
+			    #{pm_cd}+#{idx},		#{proj_cd},		#{mem},
+				SYSDATE,		'YN_E03',		'YN_A02'
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	<select id="selectAgreeType" parameterType="PMListVO" resultType="PMListVO">
+		SELECT *
+		FROM PM_LIST
+		WHERE PROJ_CD = #{proj_cd}
+		AND MEM_EMAIL = #{mem_email}
+	</select>
+	<update id="removeMember" parameterType="PMListVO">
+		UPDATE
+    		PM_LIST
+		SET
+		    YN_CODE = 'YN_A01'
+		WHERE
+		    PROJ_CD = #{proj_cd}
+		    AND MEM_EMAIL = #{mem_email}
+	</update>
+	<update id="updateAgreeYes" parameterType="PMListVO">
+		UPDATE
+    		PM_LIST
+		SET
+		    YN_CODE2 = 'YN_E01'
+		WHERE
+		    PROJ_CD = #{proj_cd}
+		    AND MEM_EMAIL = #{mem_email}
+	</update>
+	<update id="updateAgreeNo" parameterType="PMListVO">
+		UPDATE
+    		PM_LIST
+		SET
+		    YN_CODE2 = 'YN_E02'
+		WHERE
+		    PROJ_CD = #{proj_cd}
+		    AND MEM_EMAIL = #{mem_email}
+	</update>
+	<delete id="deleteMember" parameterType="PMListVO" statementType="CALLABLE">
+		{
+			CALL PM_MEMBER_OUT(#{pm_cd, mode=IN, javaType=INTEGER}, #{rowcnt, mode=OUT, jdbcType=INTEGER})
+		}
+	</delete>
+	<select id="selectProjectMemberCount" parameterType="PMListVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PM_PROJ_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+    	AND MEM_EMAIL = #{mem_email}
+	</select>
+	<select id="readProjectMember" parameterType="int" resultType="ProjListVO">
+		SELECT *
+		FROM PM_LIST
+		WHERE PROJ_CD = #{proj_cd}
+	</select>
+
+</mapper>

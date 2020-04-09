@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 4. 1.     최효은     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectBoardDAO">
+
+	<sql id="searchFrag">
+			<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+					<if test="'title'.equals(searchVO.searchType)">
+						AND PW_TITLE LIKE '%'||#{searchVO.searchWord}||'%'
+					</if>
+					<if test="'content'.equals(searchVO.searchType)">
+						AND PW_CONT LIKE '%'||#{searchVO.searchWord}||'%'
+					</if>
+					<if test="'nickName'.equals(searchVO.searchType)">
+						AND MEM_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+					</if>
+				</if>
+			</if>
+			<if test="searchVO==null">
+				OR PW_TITLE LIKE '%'||#{searchVO.searchWord}||'%'
+				OR PW_CONT LIKE '%'||#{searchVO.searchWord}||'%'
+				OR MEM_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+			</if>
+	</sql>
+	
+	<select id="selectProjcetBoardCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PBOARD_MEMBER_VIEW
+		WHERE PROJ_CD = #{searchDetail.proj_cd}
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectProjcetBoardList" parameterType="PagingVO" resultType="PwBoardVO">
+		SELECT B.*
+		FROM ( SELECT ROWNUM RNUM, A.*
+               FROM (  SELECT 	STU_POST_CD, PROJ_CD, PM_CD, MEM_EMAIL, MEM_NICK, 
+                				POST_PARENT_CD, PW_TITLE, PW_CONT, PW_DATE, PW_HIT
+                       FROM PBOARD_MEMBER_VIEW
+                       WHERE PROJ_CD = #{searchDetail.proj_cd}
+                       <include refid="searchFrag" />
+                       ORDER BY PW_DATE DESC) A) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<resultMap type="PwBoardVO" id="PwBoardMap" autoMapping="true">
+		<id property="stu_post_cd" column="PBCD" />
+		<collection property="attatchList" ofType="PMSAttVO" autoMapping="true" />
+	</resultMap>
+	<select id="selectProjcetBoard" parameterType="int" resultMap="PwBoardMap" >
+		SELECT A.STU_POST_CD PBCD, PROJ_CD, PM_CD, MEM_EMAIL, MEM_NICK, 
+                POST_PARENT_CD, PW_TITLE, PW_CONT, PW_DATE, PW_HIT
+                , ST_CD, TEMP_NM, ORI_NM, STU_SIZE, FANCY, MIME
+		FROM PBOARD_MEMBER_VIEW A LEFT OUTER JOIN 
+			PMS_ATT B ON (A.STU_POST_CD = B.STU_POST_CD)
+		WHERE A.STU_POST_CD = #{stu_post_cd}
+	</select>
+	<update id="incrementHit" parameterType="int">
+		UPDATE
+			PW_BOARD
+		SET
+			PW_HIT = PW_HIT + 1
+		WHERE
+			STU_POST_CD = #{stu_post_cd}
+	</update>
+	<insert id="insertProjcetBoard" parameterType="PwBoardVO">
+	<selectKey keyProperty="stu_post_cd" resultType="int" order="BEFORE">
+		SELECT PW_BOARD_SEQ.NEXTVAL
+		FROM DUAL
+	</selectKey>
+		INSERT INTO PW_BOARD (
+			STU_POST_CD, PROJ_CD, PM_CD, PW_TITLE, PW_CONT, PW_DATE, PW_HIT
+		) VALUES (
+			#{stu_post_cd},		#{proj_cd},		#{pm_cd},
+			#{pw_title},		#{pw_cont},		SYSDATE,
+			0
+		) 
+	</insert>
+	<update id="updateProjcetBoard" parameterType="PwBoardVO">
+		UPDATE
+			PW_BOARD
+		SET 
+			PW_TITLE = #{pw_title},
+			PW_CONT = #{pw_cont},
+			PW_DATE = SYSDATE
+		WHERE STU_POST_CD = #{stu_post_cd}
+	</update>
+	<delete id="deleteProjcetBoard" parameterType="PwBoardVO" statementType="CALLABLE" >
+		{
+			CALL DELETE_PROJECT_BOARD(#{stu_post_cd, mode=IN, javaType=INTEGER}, #{rowcnt, mode=OUT, jdbcType=INTEGER})
+		}
+	</delete>
+	<select id="selectProjectMember" parameterType="PwBoardVO" resultType="int">
+		SELECT PM_CD
+		FROM PM_LIST
+		WHERE PROJ_CD = #{proj_cd}
+		AND mem_email = #{mem_email}
+	</select>
+</mapper>

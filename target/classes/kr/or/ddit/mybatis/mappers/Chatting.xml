@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 3. 22.}     박재욱     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.chat.dao.ChattingDAO">
+	 
+	<select id="selectChattingList" parameterType="String" resultType="ChatVO">
+        SELECT CHAT_NO,MEM_EMAIL,CHAT_CONT,CHAT_DATE FROM CHAT
+        WHERE CHAT_NO =#{chat_no}
+    </select>
+    
+	<insert id="insertChat" parameterType="ChatVO" >
+	<selectKey resultType="int" keyProperty="chat_no" order="BEFORE">
+		SELECT NVL(MAX(CHAT_NO),0)+1
+		FROM CHAT
+	</selectKey>
+        INSERT INTO (CHAT_NO,MEM_EMAIL,CHAT_CONT,CHAT_DATE)
+        VALUES #{chat_no},#{mem_email},#{chat_cont},#{chat_date}
+    </insert>
+</mapper>

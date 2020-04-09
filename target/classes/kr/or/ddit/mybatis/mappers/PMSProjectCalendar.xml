@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectWorkDAO">
+	<select id="ProjectWorkingList"
+		parameterType="kr.or.ddit.vo.PwCalendarVO"
+		resultType="kr.or.ddit.vo.PwCalendarVO">
+		SELECT PROJ_CD, PROJ_NM, PM_CD, MEM_EMAIL, MEM_NICK, PW_CD, PW_NM, PROG_CD, PROG_NM, PRIOR_CD,
+		PRIOR_NM, PW_LEVEL, PW_EXT_TIME, PW_START, PW_END
+		FROM PROJ_WORK_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		<if test="CalendarSearchVO!=null">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(CalendarSearchVO.mem_email)">
+			   AND  MEM_EMAIL = #{CalendarSearchVO.mem_email}
+			 </if>
+			 <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(CalendarSearchVO.dataCnt)">
+			 	<if test="'thirty'.equals(CalendarSearchVO.dataCnt)">
+			 	AND TO_DATE(PW_START,'YYYY/MM/DD') > TO_DATE(SYSDATE,'YYYY/MM/DD') - 30
+			 	</if>
+			 	<if test="'sixty'.equals(CalendarSearchVO.dataCnt)">
+			 	AND TO_DATE(PW_START,'YYYY/MM/DD') > TO_DATE(SYSDATE,'YYYY/MM/DD') - 60
+			 	</if>
+			 	<if test="'ninety'.equals(CalendarSearchVO.dataCnt)">
+			 	AND TO_DATE(PW_START,'YYYY/MM/DD') > TO_DATE(SYSDATE,'YYYY/MM/DD') - 90
+			 	</if>
+			 </if>
+			 <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(CalendarSearchVO.prior_cd)">
+			 	AND PRIOR_CD =#{CalendarSearchVO.prior_cd}	
+			 </if>
+			 <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(CalendarSearchVO.prog_cd)">
+			 	AND PROG_CD =#{CalendarSearchVO.prog_cd}	
+			 </if>
+		 </if>
+	</select>
+</mapper>

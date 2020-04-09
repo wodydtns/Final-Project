@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminCompanyDAO">
+<sql id="companyFrag">
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'compnm'.equals(searchVO.searchType)">
+						COMP_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"comtnm".equals(searchVO.searchType)'>
+						COMT_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"compcate".equals(searchVO.searchType)'>
+						COMP_CATE LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"ceonm".equals(searchVO.searchType)'>
+						CEO_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						COMP_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						COMT_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						COMP_CATE LIKE '%'||#{searchVO.searchWord}||'%' OR
+						CEO_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<sql id="recruitFrag">
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'city'.equals(searchVO.searchType)">
+						CITY LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"empteypnm".equals(searchVO.searchType)'>
+						EMP_TEYP_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"caname".equals(searchVO.searchType)'>
+						CA_NAME LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"acanm".equals(searchVO.searchType)'>
+						ACA_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						CITY LIKE '%'||#{searchVO.searchWord}||'%' OR
+						EMP_TEYP_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						CA_NAME LIKE '%'||#{searchVO.searchWord}||'%' OR
+						ACA_NM LIKE '%'||#{searchVO.searchWord}||'%'
+						
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<select id="companyList" parameterType="kr.or.ddit.vo.PagingVO" resultType="kr.or.ddit.vo.CompanyVO">
+		SELECT A.*
+		FROM (SELECT
+		ROWNUM rnum,COMP_NM,COMP_LIC_NO,COMT_NM,COMP_CATE,
+		EMP_CNT,COMP_OPEN,CEO_NM,CITY||' '||SI||' '||ADD_DETAIL as address, COMP_URL
+		FROM
+		COMPANY COM
+		LEFT OUTER JOIN COMPANY_TYPE B ON (COM.COMT_CD = B.COMT_CD)
+		LEFT OUTER JOIN (SELECT *
+		FROM (SELECT B.AREA_NM CITY,A.AREA_NM
+		SI,A.AREA_CD AREA
+		FROM AREA A, AREA B WHERE A.AREA_ORDER = B.AREA_CD))
+		B ON (COM.AREA_CD = B.AREA)
+		<include refid="companyFrag"/>
+		) A
+        WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="recruitList" parameterType="kr.or.ddit.vo.PagingVO" resultType="kr.or.ddit.vo.RecruitVO">
+		SELECT *   
+		FROM (SELECT ROWNUM rnum,rec_title,rec_start,rec_end,rec_sal,rec_position,rec_duty,hire_cnt,
+		rec_write_date,aca_nm,city,si,ca_name,emp_teyp_nm
+		FROM RECRUIT A
+		LEFT OUTER JOIN ACADEMY B ON (A.ACA_CD=B.ACA_CD) 
+		LEFT OUTER JOIN
+		(SELECT *
+		FROM (SELECT B.AREA_NM CITY,A.AREA_NM SI,A.AREA_CD AREA
+		FROM AREA A,
+		AREA B WHERE A.AREA_ORDER = B.AREA_CD)) B ON (A.AREA_CD =
+		B.AREA) 
+		LEFT OUTER JOIN CAREER_TYPE B ON (A.CA_CODE=B.CA_CODE) 
+		LEFT OUTER JOIN EMP_TYPE B ON (A.EMP_TYPE_CD=B.EMP_TYPE_CD)
+		<include refid="recruitFrag"/>
+		)
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="companyCountTotal" resultType="int">
+		SELECT count(*)
+		FROM (SELECT
+		ROWNUM rn,COMP_NM,COMP_LIC_NO,COMT_NM,COMP_CATE,
+		EMP_CNT,COMP_OPEN,CEO_NM,CITY||' '||SI||' '||ADD_DETAIL,COMP_URL
+		FROM
+		COMPANY COM
+		LEFT OUTER JOIN COMPANY_TYPE B ON (COM.COMT_CD = B.COMT_CD)
+		LEFT OUTER JOIN (SELECT *
+		FROM (SELECT B.AREA_NM CITY,A.AREA_NM
+		SI,A.AREA_CD AREA
+		FROM AREA A, AREA B WHERE A.AREA_ORDER = B.AREA_CD))
+		B ON (COM.AREA_CD = B.AREA)
+		<include refid="companyFrag"/>
+		) A
+	</select>
+	<select id="recruitCountTotal" resultType="int">
+				SELECT count(*)
+FROM (SELECT ROWNUM rnum,rec_title,rec_start,rec_end,rec_sal,rec_position,rec_duty,hire_cnt,
+		rec_write_date,aca_nm,city,si,ca_name,emp_teyp_nm
+		FROM RECRUIT A
+		LEFT OUTER JOIN ACADEMY B ON (A.ACA_CD=B.ACA_CD) 
+		LEFT OUTER JOIN
+		(SELECT *
+		FROM (SELECT B.AREA_NM CITY,A.AREA_NM SI,A.AREA_CD AREA
+		FROM AREA A,
+		AREA B WHERE A.AREA_ORDER = B.AREA_CD)) B ON (A.AREA_CD =
+		B.AREA) 
+		LEFT OUTER JOIN CAREER_TYPE B ON (A.CA_CODE=B.CA_CODE) 
+		LEFT OUTER JOIN EMP_TYPE B ON (A.EMP_TYPE_CD=B.EMP_TYPE_CD))
+		<include refid="recruitFrag"/>
+
+		
+	</select>	
+
+
+</mapper>

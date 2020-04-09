@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 4. 2.     최효은     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectWorkFeedbackDAO">
+	<sql id="searchFrag">
+		<trim prefix=" WHERE " prefixOverrides="OR">
+			<if test="searchDetail!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.target_email) and
+				@org.apache.commons.lang3.StringUtils@isBlank(searchDetail.feed_check)">
+					OR TARGET_EMAIL = #{searchDetail.target_email, jdbcType=VARCHAR}
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.sender_email)">
+					OR SENDER_EMAIL = #{searchDetail.sender_email, jdbcType=VARCHAR}
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.feed_check) and
+				@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.target_email)">
+					OR TARGET_EMAIL = #{searchDetail.target_email, jdbcType=VARCHAR}
+					AND FEED_CHECK = #{searchDetail.feed_check, jdbcType=VARCHAR}
+				</if>
+			</if>
+		</trim>
+		<if test="searchVO!=null">
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<if test="'proj'.equals(searchVO.searchType)">
+					AND PROJ_NM LIKE '%'||#{searchVO.searchWord}||'%'
+				</if>
+				<if test="'nick'.equals(searchVO.searchType)">
+					AND TARGET_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+					OR SENDER_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+				</if>
+				<if test="'work'.equals(searchVO.searchType)">
+					AND PW_NM LIKE '%'||#{searchVO.searchWord}||'%'
+				</if>
+				<if test="!'proj'.equals(searchVO.searchType) and
+						!'nick'.equals(searchVO.searchType) and !'work'.equals(searchVO.searchType)">
+					OR PROJ_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					OR TARGET_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+					OR SENDER_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+					OR PW_NM LIKE '%'||#{searchVO.searchWord}||'%'
+				</if>
+			</if>
+		</if>
+	</sql>
+
+	<select id="selectFeedbackCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM FEED_PM_VIEW
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectFeedbackList" parameterType="PagingVO" resultType="FeedbackVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+                FROM (  SELECT FEED_CD, PW_CD, PW_NM, PROJ_CD, PROJ_NM, FEED_TARGET, TARGET_EMAIL, TARGET_NICK,
+                                FEED_SENDER, SENDER_EMAIL, SENDER_NICK, FEED_CONT, TO_CHAR(FEED_DATE, 'YYYY-MM-DD hh:ss') FEED_DATE, FEED_CHECK
+                FROM FEED_PM_VIEW
+                <include refid="searchFrag" />) A) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectFeedback" parameterType="int" resultType="FeedbackVO">
+		SELECT FEED_CD, PW_CD, PW_NM,PROJ_CD, PROJ_NM, FEED_TARGET, TARGET_EMAIL, TARGET_NICK,
+               FEED_SENDER, SENDER_EMAIL, SENDER_NICK, FEED_CONT, FEED_DATE, FEED_CHECK
+		FROM FEED_PM_VIEW
+		WHERE FEED_CD = #{feed_cd}
+	</select>
+	<insert id="insertFeedback" parameterType="FeedbackVO">
+		INSERT INTO FEEDBACK (
+		    FEED_CD, FEED_TARGET, FEED_SENDER, FEED_CONT, PW_CD, FEED_DATE, FEED_CHECK
+		) VALUES (
+		    FEEDBACK_SEQ.NEXTVAL ,
+		    #{feed_target},
+		    #{feed_sender},
+		    #{feed_cont},
+		    #{pw_cd},
+		    SYSDATE,
+		    'YN_F02'
+		)
+	</insert>
+	<delete id="deleteFeedback" parameterType="int">
+		DELETE FROM FEEDBACK
+		WHERE FEED_CD = #{feed_cd}
+	</delete>
+	<select id="selectProjMember" parameterType="FeedbackVO" resultType="int">
+		SELECT PM_CD
+		FROM PM_LIST
+		WHERE PROJ_CD = #{proj_cd}
+		AND MEM_EMAIL = #{sender_email}
+	</select>
+	<update id="updateFeedbackCheck" parameterType="int">
+		UPDATE 
+			FEEDBACK
+		SET
+			FEED_CHECK = 'YN_F01'
+		WHERE FEED_CD = #{feed_cd}
+	</update>
+	<select id="selectPMSFeedbackCount" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM FEED_PM_VIEW
+		WHERE TARGET_EMAIL = #{mem_email}
+	</select>
+</mapper>

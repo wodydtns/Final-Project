@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectWorkReplyDAO">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 3. 31.     최효은     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+
+	<select id="selectProjectWorkReplyCount" parameterType="PagingVO" resultType="int">
+		SELECT 	COUNT(*)
+		FROM	PROJ_COMMENT A LEFT OUTER JOIN PM_LIST B ON (A.PM_CD = B.PM_CD)
+            	LEFT OUTER JOIN MEMBER C ON (B.MEM_EMAIL = C.MEM_EMAIL)
+		WHERE 	PW_CD = #{searchDetail.pw_cd}
+	</select>
+	<select id="selectProjectWorkReplyList" parameterType="PagingVO" resultType="ProjCommentVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+                FROM (  SELECT PROJ_COMM_CD, PW_CD, A.PM_CD, PROJ_COMM_CONT, PROJ_COMM_DATE, B.MEM_EMAIL, MEM_NICK
+                        FROM PROJ_COMMENT A LEFT OUTER JOIN PM_LIST B ON (A.PM_CD = B.PM_CD)
+                                    LEFT OUTER JOIN MEMBER C ON (B.MEM_EMAIL = C.MEM_EMAIL)
+                        WHERE PW_CD = #{searchDetail.pw_cd}
+                        ORDER BY PROJ_COMM_CD DESC) A) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<insert id="insertReply" parameterType="ProjCommentVO">
+		INSERT INTO PROJ_COMMENT (
+			PROJ_COMM_CD, PW_CD, PM_CD, PROJ_COMM_CONT, PROJ_COMM_DATE, WORK_CHECK
+		) VALUES (
+			PROJ_COMMENT_SEQ.NEXTVAL,
+			#{pw_cd},
+			#{pm_cd},
+			#{proj_comm_cont},
+			SYSDATE,
+			'YN_F02'
+		)
+	</insert>
+	<update id="updateReply" parameterType="ProjCommentVO">
+		UPDATE
+			PROJ_COMMENT
+		SET 
+			PM_CD = #{pm_cd},
+			PROJ_COMM_CONT = #{proj_comm_cont},
+			PROJ_COMM_DATE = SYSDATE
+		WHERE
+			PROJ_COMM_CD = #{proj_comm_cd}
+	</update>
+	<delete id="deleteReply" parameterType="ProjCommentVO">
+		DELETE FROM PROJ_COMMENT
+		WHERE PROJ_COMM_CD = #{proj_comm_cd}
+	</delete>
+	<select id="selectProjectMember" parameterType="PMListVO" resultType="int">
+		SELECT PM_CD
+		FROM PM_LIST
+		WHERE PROJ_CD = #{proj_cd}
+		AND mem_email = #{mem_email}
+	</select>
+
+</mapper>

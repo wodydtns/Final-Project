@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 3. 16.     최효은     최초작성               -->
+<!--  2020. 3. 19.     최효은     검색을 위한 쿼리문 수정, frag 추가               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectWorkDAO">
+	<!-- 검색을 위한 sql 생성 -->
+	<sql id="searchFrag">
+		<if test="searchVO!=null">
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				AND PW_NM LIKE '%'||#{searchVO.searchWord, jdbcType=VARCHAR}||'%'
+		    </if>
+		</if>
+		<if test="searchDetail!=null">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.psVO.prog_cd)">
+				AND PROG_CD = #{searchDetail.psVO.prog_cd, jdbcType=VARCHAR}
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.psVO.prior_cd)">
+				AND PRIOR_CD = #{searchDetail.psVO.prior_cd, jdbcType=VARCHAR}
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDetail.psVO.mem_nick)">
+				AND MEM_NICK = #{searchDetail.psVO.mem_nick, jdbcType=VARCHAR}
+			</if>
+		</if>
+	</sql>
+	<select id="selectProjectWorkAllCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PROJ_WORK_VIEW
+		WHERE MEM_EMAIL = #{searchDetail.psVO.mem_email}
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectProjectWorkAllList" parameterType="PagingVO" resultType="PwListVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+	            FROM (  SELECT PROJ_NM, PROG_NM, PRIOR_NM, PW_LEVEL, PW_CD, PW_NM, MEM_NICK, TO_CHAR(PW_MODI_DATE, 'YYYY-MM-DD hh:ss') PW_MODI_DATE
+	                    FROM PROJ_WORK_VIEW
+	                    WHERE MEM_EMAIL = #{searchDetail.psVO.mem_email}
+	                    AND YN_CODE2 = 'YN_E01'
+	                    <include refid="searchFrag" />
+	                    ORDER BY PROJ_CD, PW_CD) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectProjectWorkCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PROJ_WORK_VIEW
+		WHERE PROJ_CD = #{searchDetail.psVO.proj_cd} 
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectProjectWorkList" parameterType="PagingVO" resultType="PwListVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+	            FROM (  SELECT PROJ_NM, PROG_NM, PRIOR_NM, PW_CD, PW_NM, MEM_NICK, TO_CHAR(PW_MODI_DATE, 'YYYY-MM-DD hh:ss') PW_MODI_DATE
+	                    FROM PROJ_WORK_VIEW
+	                    WHERE PROJ_CD = #{searchDetail.psVO.proj_cd}
+	                    <include refid="searchFrag" />
+	                    ORDER BY PW_CD DESC) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<resultMap type="PwListVO" id="pwListMap" autoMapping="true">
+		<id property="pw_cd" column="PWCD" />
+		<collection property="attatchList" ofType="PMSAttVO" autoMapping="true" />
+	</resultMap>
+	<select id="selectProjectWorkAtt" parameterType="int" resultMap="pwListMap">
+		SELECT 	PROJ_CD, PROJ_NM, PROJ_LEADER, MEM_EMAIL, MEM_NICK, A.PW_CD PWCD, PW_NM, PW_EXP, PROG_CD, PROG_NM, 
+				PRIOR_CD, PM_CD, PRIOR_NM, PW_LEVEL, PW_EXT_TIME, PW_START, PW_END, YN_NAME, PW_MODI_DATE, 
+				YN_CODE, YN_CODE2 , ST_CD, TEMP_NM, ORI_NM, STU_SIZE, FANCY, MIME
+		FROM 	PROJ_WORK_VIEW A LEFT OUTER JOIN 
+				PMS_ATT B ON (A.PW_CD = B.PW_CD) WHERE A.PW_CD = #{pw_cd}
+	</select>
+	<select id="selectProjectWork" parameterType="int" resultType="PwListVO">
+		SELECT PROJ_CD, PROJ_NM, PROJ_LEADER, MEM_EMAIL, MEM_NICK, PW_CD, PW_NM, PW_EXP, PROG_CD, PROG_NM, PRIOR_CD, PM_CD,
+				PRIOR_NM, PW_LEVEL, PW_EXT_TIME, PW_START, PW_END, YN_NAME, PW_MODI_DATE, YN_CODE, YN_CODE2
+		FROM PROJ_WORK_VIEW
+		WHERE PW_CD = #{pw_cd}
+	</select>
+	<insert id="insertProjectWork" parameterType="PMListVO">
+		<selectKey keyProperty="pw_cd" resultType="int" order="BEFORE">
+			SELECT PW_LIST_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT INTO PW_LIST (
+		    PW_CD, PROJ_CD, PROG_CD,
+		    PRIOR_CD,PM_CD, PW_NM,
+		    PW_END, PW_START, PW_LEVEL,
+		    PW_EXT_TIME, PW_EXP, YN_CODE
+		) VALUES (
+		    #{pw_cd},		#{proj_cd},		#{prog_cd},
+			#{prior_cd},	#{pm_cd},		#{pw_nm},
+			#{pw_end},		#{pw_start},	#{pw_level},
+			#{pw_ext_time, jdbcType=NUMERIC},	#{pw_exp, jdbcType=CLOB},
+			'YN_F02'
+		)
+	</insert>
+	<update id="updateProjectWork" parameterType="PwListVO" >
+		UPDATE
+			PW_LIST
+		SET 
+			PM_CD = #{pm_cd},
+			PROG_CD = #{prog_cd},
+			PRIOR_CD = #{prior_cd},
+			PW_NM = #{pw_nm},
+			PW_END = #{pw_end},
+			PW_START = #{pw_start},
+			PW_LEVEL = #{pw_level},
+			PW_EXT_TIME = #{pw_ext_time, jdbcType=NUMERIC},
+			PW_EXP = #{pw_exp, jdbcType=CLOB},
+			YN_CODE = 'YN_F02',
+			PW_MODI_DATE = SYSDATE
+		WHERE PW_CD = #{pw_cd}
+	</update>
+	<!-- 확인했을 경우 : YN_F01 -->
+	<update id="updateProjectWorkAgreeYes" parameterType="PwListVO">
+		UPDATE
+			PW_LIST
+		SET 
+			YN_CODE = 'YN_F01'
+		WHERE PW_CD = #{pw_cd}
+	</update>
+	<!-- 확인하지 않았을 경우 : YN_F02 -->
+	<update id="updateProjectWorkAgreeNo" parameterType="PwListVO">
+		UPDATE
+			PW_LIST
+		SET 
+			YN_CODE = 'YN_F02'
+		WHERE PW_CD = #{pw_cd}
+	</update>
+<!-- 	<delete id="deleteProjectWork" parameterType="PwListVO"> -->
+		
+<!-- 	</delete> -->
+	<select id="selectNewProjectWorkList" parameterType="string" resultType="PwListVO">
+	    SELECT PROJ_CD, PROJ_NM, PROJ_LEADER, MEM_EMAIL, MEM_NICK, PW_CD, PW_NM, PW_EXP, PROG_CD, PROG_NM, PRIOR_CD,
+				PRIOR_NM, PW_LEVEL, PW_EXT_TIME, PW_START, PW_END, YN_NAME, PW_MODI_DATE, YN_CODE, YN_CODE2
+		FROM PROJ_WORK_VIEW
+		WHERE MEM_EMAIL = #{mem_email}
+		AND OK = 'YN_F02'
+	</select>
+	<update id="updateNewProjectWork" parameterType="string">
+	    UPDATE
+		    PW_LIST
+		SET 
+		    YN_CODE = 'YN_F01'
+		WHERE PW_CD = #{proj_cd}
+	</update>
+	<delete id="deleteProjectWork" parameterType="PwListVO" statementType="CALLABLE">
+		{
+			CALL DELETE_PROJECT_WORK(#{pw_cd, mode=IN, javaType=INTEGER}, #{rowcnt, mode=OUT, jdbcType=INTEGER})
+		}
+	</delete>
+	<select id="selectProjectWorkName" parameterType="PMListVO" resultType="PwListVO">
+		SELECT PW_CD, PW_NM
+		FROM PROJ_WORK_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		AND PM_CD = #{pm_cd}
+	</select>
+</mapper>

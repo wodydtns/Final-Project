@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 3. 13.     최효은     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectDAO">
+
+	<sql id="searchFrag">
+		<if test="searchVO!=null">
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				AND PW_NM LIKE '%'||#{searchVO.searchWord, jdbcType=VARCHAR}||'%'
+		    </if>
+		</if>
+		<if test="psVO!=null">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(psVO.prog_cd)">
+				AND PROG_CD = #{psVO.prog_cd, jdbcType=VARCHAR}
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(psVO.prior_cd)">
+				AND PRIOR_CD = #{psVO.prior_cd, jdbcType=VARCHAR}
+			</if>
+		</if>
+	</sql>
+    
+    <select id="selectGanttWork" parameterType="PwListVO" resultType="PwListVO">
+        SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+	            FROM (  SELECT PROJ_CD, PROJ_NM, PROG_NM, PRIOR_NM, PW_LEVEL, PW_NM, MEM_NICK, PW_START, PW_END, TO_CHAR(PW_MODI_DATE, 'YYYY-MM-DD hh:ss') PW_MODI_DATE
+	                    FROM PROJ_WORK_VIEW
+	                  	WHERE MEM_EMAIL = #{psVO.mem_email}
+	                  	AND PROJ_CD = #{psVO.proj_cd}
+	                  	<include refid="searchFrag" />
+	                    ORDER BY PROJ_CD, PW_CD) A ) B
+    </select>
+    <select id="selectAllGanttWork" parameterType="PwListVO" resultType="PwListVO">
+        SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+	            FROM (  SELECT PROJ_CD, PROJ_NM, PROG_NM, PRIOR_NM, PW_LEVEL, PW_NM, MEM_NICK, PW_START, PW_END, TO_CHAR(PW_MODI_DATE, 'YYYY-MM-DD hh:ss') PW_MODI_DATE
+	                    FROM PROJ_WORK_VIEW
+	                  	WHERE MEM_EMAIL = #{psVO.mem_email}
+	                  	<include refid="searchFrag" />
+	                    ORDER BY PROJ_CD, PW_CD) A ) B
+    </select>
+	<select id="selectProjCount" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM PM_LIST
+		WHERE MEM_EMAIL = #{searchVO.searchWord}
+		AND YN_CODE2 = 'YN_E01'
+		AND YN_CODE = 'YN_A02'
+	</select>
+	<select id="selectProjList" parameterType="PagingVO" resultType="ProjListVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+                FROM (  SELECT PROJ_CD, PM_CD, CATE_CD, PROJ_NM, PROJ_EXP, PROJ_START, PROJ_END, PROJ_LEADER
+                        FROM PM_PROJ_VIEW
+                        WHERE MEM_EMAIL = #{searchVO.searchWord}
+                        AND YN_CODE2 = 'YN_E01'
+                        AND YN_CODE = 'YN_A02'
+                        ORDER BY PROJ_CD) A) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectProjAgreeCount" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM PM_LIST
+		WHERE MEM_EMAIL = #{searchVO.searchWord}
+        AND YN_CODE2 = 'YN_E03'
+	</select>
+	<select id="selectProjAgreeList" parameterType="PagingVO" resultType="ProjListVO">
+		SELECT B.*
+		FROM (  SELECT ROWNUM RNUM, A.*
+                FROM (  SELECT PROJ_CD, PM_CD, CATE_CD, PROJ_NM, PROJ_EXP, PROJ_START, PROJ_END, PROJ_LEADER
+                        FROM PM_PROJ_VIEW
+                        WHERE MEM_EMAIL = #{searchVO.searchWord}
+                        AND YN_CODE2 = 'YN_E03'
+                        ORDER BY PROJ_CD) A) B
+	</select>
+	<insert id="insertProject" parameterType="ProjListVO">
+		<selectKey resultType="int" keyProperty="proj_cd" order="BEFORE">
+			SELECT PROJ_LIST_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT INTO  PROJ_LIST (
+            PROJ_CD, PROJ_LEADER,    CATE_CD,
+            PROJ_NM,    PROJ_EXP,   PROJ_START,
+            PROJ_END
+        )
+		VALUES (
+			#{proj_cd},	#{proj_leader},	#{cate_cd, jdbcType=VARCHAR},
+			#{proj_nm},	#{proj_exp, jdbcType=CLOB},	#{proj_start},
+			#{proj_end}
+		)
+	</insert>
+	<insert id="insertProjectMemer" parameterType="ProjListVO">
+	INSERT INTO PM_LIST
+		(PM_CD, PROJ_CD, MEM_EMAIL,
+		PM_DATE, YN_CODE2, YN_CODE)
+	VALUES (
+			PM_LIST_SEQ.NEXTVAL,		#{proj_cd},
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(proj_leader)">
+				#{proj_leader},
+			</if>	
+			<if test="@org.apache.commons.lang3.StringUtils@isBlank(proj_leader)">
+				#{pmList.mem_email},
+			</if>	
+			SYSDATE,		#{pmList.yn_code2},		#{pmList.yn_code}
+		)
+	</insert>
+	<select id="selectMaxProj" parameterType="string" resultType="int" >
+		SELECT MAX(PROJ_CD) PROJ_CD
+		FROM PROJ_LIST
+		WHERE PROJ_LEADER = #{proj_leader}
+	</select>
+	<update id="updateProject" parameterType="ProjListVO">
+		UPDATE PROJ_LIST
+		SET 
+			CATE_CD = #{cate_cd, jdbcType=VARCHAR},
+			PROJ_NM = #{proj_nm},
+			PROJ_EXP = #{proj_exp, jdbcType=CLOB}
+		WHERE
+			PROJ_CD = #{proj_cd}
+		AND	PROJ_LEADER = #{proj_leader}
+	</update>
+	<select id="selectProj" parameterType="ProjListVO" resultType="ProjListVO">
+		SELECT PROJ_CD, PM_CD, PROJ_LEADER, MEM_EMAIL, MEM_NICK, CATE_CD, CATE_NM, PROJ_NM, PROJ_EXP, PROJ_START, PROJ_END
+		FROM PM_PROJ_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		AND MEM_EMAIL = #{mem_email}
+		AND YN_CODE2 = 'YN_E01'
+	</select>
+	<select id="selectProjectMember" parameterType="int" resultType="ProjListVO">
+		SELECT PROJ_CD, PM_CD, PROJ_LEADER, MEM_EMAIL, MEM_NICK 
+		FROM PM_PROJ_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		AND YN_CODE2 = 'YN_E01'
+		AND YN_CODE = 'YN_A02'
+		ORDER BY PM_CD
+	</select>
+	<select id="selectProgCount" parameterType="ProjListVO" resultType="int">
+		SELECT COUNT(*) PROG_CNT
+		FROM PROJ_WORK_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		AND MEM_EMAIL = #{mem_email}
+		AND PROG_NM IN ('신규', '진행')
+	</select>
+	<select id="selectCompCount" parameterType="ProjListVO" resultType="int">
+		SELECT COUNT(*) COMP_CNT
+		FROM PROJ_WORK_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		AND MEM_EMAIL = #{mem_email}
+		AND PROG_NM = '완료'
+	</select>
+	<select id="selectTimeSum" parameterType="ProjListVO" resultType="int">
+		SELECT NVL(SUM(PW_EXT_TIME), 0) PW_EXT_TIME
+		FROM PROJ_WORK_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+	</select>
+	<select id="selectNewFeedbackList" parameterType="string" resultType="FeedbackVO">
+	    SELECT *
+		FROM PROJ_WORK_VIEW
+		WHERE MEM_EMAIL = #{mem_email}
+		AND OK = 'YN_F02'
+	</select>
+	<update id="updateNewFeedback" parameterType="string">
+	    UPDATE
+		    FEEDBACK
+		SET
+		    YN_CODE = 'YN_F01'    
+		WHERE FEED_CD = #{peed_cd}
+	</update>
+</mapper>
+
+
+
+
+
+
+
+

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hobby.dao.IHobbyCategoryDAO">
+<sql id="categoryFrag">
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'catecd'.equals(searchVO.searchType)">
+						CATE_CD LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						CATE_CD LIKE '%'||#{searchVO.searchWord}||'%' OR
+						
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<select id="selectCategoryList" resultType="ClassPiVO" parameterType="String">
+		SELECT A.*, B.CATE_CD CATE_CD, B.PI_NM, TO_CHAR(DBMS_LOB.SUBSTR(B.PI_INTRO,4000,1)) PI_INTRO
+		    , B.PI_ADD_INFO, C.*
+		FROM CLASS A 
+		JOIN PI B ON (A.PRE_CD = B.PI_CD)
+		JOIN PI_ATT C ON (B.PI_CD = C.PI_CD)
+		WHERE CATE_CD = #{cate_cd}
+	</select>
+	
+	<select id="pagingCategoryList" resultType="kr.or.ddit.vo.ClassPiVO" parameterType="hobbyCategoryPagingVO">
+		SELECT BB.*
+				FROM(
+		            SELECT ROWNUM RNUM, AA.*
+		            FROM(
+		                SELECT A.cl_cd, A.cl_start, A.cl_end, A.cl_fee, A.cl_like
+		                , B.cate_cd, B.lod_cd, B.crea_email, B.pi_nm 
+		                , B.pi_add_info, B.pi_start, B.pi_end, B.pi_open, B.pi_cnt, B.yn_code
+		                , C.*
+		                FROM CLASS A 
+		                JOIN PI B ON (A.PRE_CD = B.PI_CD)
+		                JOIN PI_ATT C ON (B.PI_CD = C.PI_CD) ) AA ) BB
+		                WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		                
+	</select>
+	
+	<select id="selectCategoryCount" resultType="int">
+		SELECT COUNT(*)
+		FROM CLASS A 
+		JOIN PI B ON (A.PRE_CD = B.PI_CD)
+		JOIN PI_ATT C ON (B.PI_CD = C.PI_CD)
+	</select>
+	
+</mapper>

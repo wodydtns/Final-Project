@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hobby.dao.IHobbyClassDAO">
+<sql id="searchFrag">
+		<where>
+		    <if test="searchVO!=null">
+		    	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+		    		<choose>
+		    			<when test="'title'.equals(searchVO.searchType)">
+			    			INSTR(PI_NM, #{searchVO.searchWord}) > 0
+		    			</when>
+		    			<when test="'writer'.equals(searchVO.searchType)">
+			    			INSTR(CREA_EMAIL, #{searchVO.searchWord}) > 0
+		    			</when>
+		    			<when test="'content'.equals(searchVO.searchType)">
+			    			INSTR(PI_INTRO, #{searchVO.searchWord}) > 0
+		    			</when>
+		    			<otherwise>
+			    			INSTR(PI_NM, #{searchVO.searchWord}) > 0
+			    			OR INSTR(CREA_EMAIL, #{searchVO.searchWord}) > 0
+			    			OR INSTR(PI_INTRO, #{searchVO.searchWord}) > 0
+		    			</otherwise>
+		    		</choose>
+		    	</if>
+		    </if>
+	    </where>
+	</sql>
+
+<!-- 최신 클래스 목록 출력-->
+	<select id="selectClassList" resultType="kr.or.ddit.vo.classPiAttVO" parameterType="hobbyBestPagingVO">
+        SELECT E.* FROM(
+		SELECT ROWNUM RNUM, D.* 
+		FROM (SELECT * FROM CLASS A JOIN PI B ON (A.PRE_CD 
+		= B.PI_CD) JOIN PI_ATT C ON (B.PI_CD = C.PI_CD) ORDER 
+		BY CL_CD DESC)D )E 
+		 <include refid="searchFrag" />
+		WHERE RNUM  BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	
+	<!-- 클래스 카운트 -->
+	<select id="selectClassCount" resultType="int">
+		SELECT COUNT(*)
+        FROM CLASS A
+        JOIN PI B ON (A.PRE_CD = B.PI_CD)
+        JOIN PI_ATT C ON (B.PI_CD = C.PI_CD)
+	</select>
+	
+	<!-- 쿠폰조회  -->
+	<select id="selectCouponList" resultType="CouponVO">
+		SELECT * FROM COUPON
+	</select>
+	
+	<select id="selectCoupon" resultType="CouponHaveVO" parameterType="MemberVO">
+		SELECT *
+		FROM COUPON_HAVE
+		WHERE MEM_EMAIL = #{mem_email} AND CP_CD = #{cp_cd}
+	</select>
+	
+	<!-- 쿠폰 발급받기 -->
+	<insert id="insertCoupon" parameterType="CouponHaveVO">
+		<selectKey resultType="int" keyProperty="cp_have_cd" order="BEFORE">
+			SELECT COUPON_HAVE_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT INTO COUPON_HAVE(
+			CP_HAVE_CD, MEM_EMAIL, CP_CD, YN_CODE
+		) VALUES (
+			#{cp_have_cd}, #{mem_email}, #{cp_cd}, 'YN_B02'
+		) 
+	</insert>
+	
+</mapper>
+
+

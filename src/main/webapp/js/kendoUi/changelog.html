@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Changelog for Kendo UI Core v2020.1.219 (February 19, 2020)</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font: .75em/1.5 Tahoma, sans-serif;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            font-size: normal;
+        }
+
+        h2 {
+            font-size: 2em;
+            font-weight: normal;
+
+            margin: 1.2em 0 .3em;
+            padding-bottom: .2em;
+        }
+
+        .breaking {
+            background-color: #e10c01;
+            color: #fff;
+            border-radius: 3px;
+            padding: 3px 4px;
+            display: inline-block;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: bold;
+        }
+
+        #page {
+            width: 50em;
+            margin: 0 auto 2em;
+            border-radius: 0 0 1em 1em;
+            box-shadow: 0 0 10px #ccc;
+            padding: 1em 2em 2em;
+        }
+
+        .poBoxIcon {
+            float: left;
+            font-size: 2em;
+            margin: 1.2em .5em 0 0;
+        }
+
+        .poTopLine {
+            border-top: 2px solid #e1e1e1;
+            margin: 17px 0 40px 0;
+        }
+    </style>
+
+    <base href="http://www.telerik.com/support/whats-new/kendo-ui-web/release-history">
+</head>
+<body>
+    <div id="page">
+        <h1 class="title">Release notes</h1>
+
+        <h1>Components</h1>
+        <div class="tClear poTopLine">
+            <div class="poBoxIconText">
+                
+                
+            </div>
+        </div>
+
+
+        <div class="tClear poTopLine">
+            <h2>AutoComplete</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>ColorPicker</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>FlatColorPicker memory leak (event handlers are not removed when widget is destroyed) (<a href="https://github.com/telerik/kendo-ui-core/issues/2734">#2734</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>ComboBox</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+<li>ComboBox doesn't reset its default state on content deletion (<a href="https://github.com/telerik/kendo-ui-core/issues/5400">#5400</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>ContextMenu</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>appendTo in ContextMenu does not recognize string when scrollable is true (<a href="https://github.com/telerik/kendo-ui-core/issues/5496">#5496</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>DateInput</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>DatePicker</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+<li>JS error on clear and blur DatePicker input  (<a href="https://github.com/telerik/kendo-ui-core/issues/5550">#5550</a>)</li>
+<li>Not possible to select a date in DatePicker on mobile in Desktop mode (<a href="https://github.com/telerik/kendo-ui-core/issues/5428">#5428</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>DateTimePicker</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+<li>JS error on clear and blur DatePicker input  (<a href="https://github.com/telerik/kendo-ui-core/issues/5550">#5550</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>Draggable</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Difficult drag and drop in mobile with Desktop site mode</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>DropDownList</h2>
+            <p><strong>What's new</strong></p>
+<ul>
+<li>Add kendoKeydown event global plugin</li>
+</ul>
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Cascading child DropDownList remains disabled in IE11 on navigating and filtering its parent DropDownlist via keyboard (<a href="https://github.com/telerik/kendo-ui-core/issues/5567">#5567</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>DropDownTree</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>FileManager</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Setting custom tool in the Toolbar renders Upload in the content area (<a href="https://github.com/telerik/kendo-ui-core/issues/5565">#5565</a>)</li>
+<li>FileManager loses focus after canceling item deleting by keyboard (<a href="https://github.com/telerik/kendo-ui-core/issues/5533">#5533</a>)</li>
+<li>Swapped list view and grid views icons in FileManager toolbar (<a href="https://github.com/telerik/kendo-ui-core/issues/5532">#5532</a>)</li>
+<li>FileManager's ContextMenu and ToolBar events cannot be handled (<a href="https://github.com/telerik/kendo-ui-core/issues/5530">#5530</a>)</li>
+<li>FileManager: refresh only updates right pane (<a href="https://github.com/telerik/kendo-ui-core/issues/5527">#5527</a>)</li>
+<li>Wrong path used in FileManager's TreeView after renaming a parent node</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>Filter</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>DefaultValue '0' and 'false' not applied for numeric and boolean fields (<a href="https://github.com/telerik/kendo-ui-core/issues/5330">#5330</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>Gantt</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>While editing a Gantt task name navigating in the input field with mouse click is not possible (<a href="https://github.com/telerik/kendo-ui-core/issues/5583">#5583</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>ListBox</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>KendoListBox performance issue with multiselect and transfer for larger datasets  (<a href="https://github.com/telerik/kendo-ui-core/issues/4255">#4255</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>MVVM</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Inline Editor MVVM and Hybrid UI is not working on iOS (<a href="https://github.com/telerik/kendo-ui-core/issues/4512">#4512</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>MaskedTextBox</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>MultiColumnComboBox</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>NumericTextBox</h2>
+            <p><strong>What's new</strong></p>
+<ul>
+<li>Restrict characters input in Android OS (<a href="https://github.com/telerik/kendo-ui-core/issues/2109">#2109</a>)</li>
+</ul>
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>PDFViewer</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Blurred text on PDFViewer printing with scale less than 200% (<a href="https://github.com/telerik/kendo-ui-core/issues/5394">#5394</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>PanelBar</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Navigation does not work on clicking a PanelBar item with url set (<a href="https://github.com/telerik/kendo-ui-core/issues/5537">#5537</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>Sortable</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Difficult drag and drop in mobile with Desktop site mode</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>Switch</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Input wrapped in class - 'input-validation-error' is not submitted by jquery-validate greater than version 1.12.0 (<a href="https://github.com/telerik/kendo-ui-core/issues/5595">#5595</a>)</li>
+</ul>
+        </div>
+        <div class="tClear poTopLine">
+            <h2>Tooltip</h2>
+            
+            <p><strong>What's fixed</strong></p>
+<ul>
+<li>Tooltip is not displayed in iPadOS 13 Safari Desktop Mode (<a href="https://github.com/telerik/kendo-ui-core/issues/5356">#5356</a>)</li>
+<li>Tooltip opens only once on iOS, when showOn is mouseenter (default setting) (<a href="https://github.com/telerik/kendo-ui-core/issues/4422">#4422</a>)</li>
+</ul>
+        </div>
+    </div>
+</body>
+</html>

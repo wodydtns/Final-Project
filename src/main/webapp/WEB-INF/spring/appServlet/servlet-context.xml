@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	<!-- 필요한 전략을 자동으로 등록해줌. 필요한 아규먼트 리졀버를 넣어준 상태. -->
+	<annotation-driven />
+	
+
+	<!-- HandlerMapping HandlerAdapter ViewResolver -->
+	
+	<!-- 뷰를 해결해주는 전략 -->
+	<!-- 스프링에서는 이런걸 기본으로 짜놓는다. -->
+	<!-- InternalResourceViewResolver : 현재 서버 안에서 웹 리소스가 있는 곳에서 뷰를 찾아내는 전략 -->
+	<!-- 프리픽스, 서픽스가 등록되어 있다. -->
+	<beans:bean id="IRVR"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+		p:prefix="/WEB-INF/views/" p:suffix=".jsp"
+	 />
+
+	<!-- logical view name으로 등록된 definition을 검색 -->
+	<beans:bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer" 
+		p:definitions="classpath:kr/or/ddit/tiles/*-definitions.xml"
+		p:preparerFactoryClass="org.springframework.web.servlet.view.tiles3.SpringBeanPreparerFactory"
+	/>
+	<beans:bean id="TVR"
+		class="org.springframework.web.servlet.view.tiles3.TilesViewResolver" 
+		p:order="1"
+	/>
+	<beans:bean class="org.springframework.web.servlet.view.BeanNameViewResolver" 
+		p:order="2"
+	/>
+	<beans:bean id="downloadView" class="kr.or.ddit.admin.view.DownloadView" />
+	<beans:bean id="projectWorkDownloadView" class="kr.or.ddit.pmsproject.view.ProjectWorkDownloadView" />
+	<beans:bean id="projectBoardDownloadView" class="kr.or.ddit.pmsproject.view.ProjectBoardDownloadView" />
+	<!-- /로 주면 톰캣의 정적 요청 처리까지 스탠다드 서블릿 멀티파티 리절버... 아씨 프론트로 다 넘어온다. -->
+	<!-- default-servlet-handler : 톰캣한테 정적(default)인 요청을 넘기는 구조가 된다. -->
+	<default-servlet-handler />
+
+	<!-- 파일 업로드 전략 -->
+	<!-- request를 파싱하고, wrapper(MultipartHttpServletRequest) 로 변경하는 전략 ※주의※ 
+		id="multipartResolver" MultipartResolver warpper 내에서 body의 파트를 캡슐화할 때는 MultipartFile 
+		※주의※ StandardServletMultipartResolver 를 사용하는 경우, DispatcherServlet의 multipart-config 
+		설정 필요 -->
+	<!-- StandardServletMultipartResolver : 표준 서블렛의 API를 그대로 사용한다. -->
+	<!-- 자동완성으로 id를 이렇게 줘야 한다. 누군가가 주입을 받고 있음. (핸들러 어댑터) -->
+	<beans:bean id="multipartResolver"
+		class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
+		</beans:bean>
+
+
+	<context:component-scan
+		base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+		<context:include-filter type="annotation"
+			expression="kr.or.ddit.annotations.Preparer" />
+	</context:component-scan>
+	<!-- @Controller 를 가지고 있기 때문에 컨트롤러를 등록했기 때문에 레스트 컨트롤러는 이미 등록이 되어 있다. -->
+
+	<!-- ResourceBundleMessageSource : 리소스 번들의 형태로 작성된 메세지의 출처 정보 -->
+	<!-- 정해줘야 하는 아이디 : messageSource -->
+	<!-- 주입받고 있는 대상 : 뷰 리절버 -->
+
+	<!-- 웰컴페이지를 매핑, 논리적인 뷰네임을 써줘야함. IRVR를 타면 prefix등이 되지. 근데 우리는 타일즈 태우고 싶은거니깐 데피니션에 등록되어있어야함-->
+	<view-controller path="/" view-name="index"/> 
+	
+	<!-- 메세지 처리 API -->
+	<beans:bean id="messageSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor" 
+	c:messageSource-ref="messageSource"
+	/>
+	
+	<beans:bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
+		p:basename="kr.or.ddit.msg.message"
+	/>
+
+
+<beans:bean id="javaMailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <beans:property name="host" value="smtp.gmail.com" />
+        <beans:property name="port" value="587" />
+        <beans:property name="username" value="ddit05050814@gmail.com" />
+        <beans:property name="password" value="test0814!" />
+        <beans:property name="javaMailProperties">
+            <beans:props>
+                <beans:prop key="mail.smtp.ssl.trust">smtp.gmail.com</beans:prop>
+                <beans:prop key="mail.smtp.starttls.enable">true</beans:prop>
+                <beans:prop key="mail.smtp.auth">true</beans:prop>
+            </beans:props>
+        </beans:property>
+ </beans:bean>
+ <beans:bean id="mailService" class="kr.or.ddit.login.service.MailServiceImpl">
+ </beans:bean>
+ 
+ 
+ 
+ 
+ 
+	
+</beans:beans>

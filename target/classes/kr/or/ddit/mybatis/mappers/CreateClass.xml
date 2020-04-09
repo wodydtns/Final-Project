@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.creatorCenter.dao.IClassDAO">
+
+<insert id="insertCreator" parameterType="CreatorVO2">
+	INSERT INTO CREATOR (CREA_EMAIL, MEM_INTRO, CREA_DATE)
+	VALUES (#{crea_email}, #{mem_intro}, SYSDATE)
+</insert>
+
+<select id="selectMyClassList" parameterType="String" resultType="ClassVO">
+
+	SELECT CL_CD, PI_NM, CL_START , CL_END, TEMP_NM
+	FROM CL_PI_VIEW
+	WHERE CREA_EMAIL = #{crea_email}
+
+</select>
+
+<select id="selectMyClass" parameterType="int" resultType="ClassVO">
+	SELECT CATE_NM,CL_CD, PI_NM,  PI_INTRO, PI_ADD_INFO, CL_START, CL_END, CL_FEE, TEMP_NM
+	FROM PI_ATT RIGHT OUTER JOIN 
+	(SELECT CATE_NM, PRE_CD,CL_CD, PI_NM,  PI_INTRO, PI_ADD_INFO, CL_START, CL_END, CL_FEE
+	FROM CATEGORY RIGHT OUTER JOIN 
+	(SELECT CL_CD, PRE_CD,CATE_CD, PI_NM,  PI_INTRO, PI_ADD_INFO, CL_START, CL_END, CL_FEE
+	FROM CLASS JOIN PI ON (CLASS.PRE_CD = PI.PI_CD)) A ON (CATEGORY.CATE_CD = A.CATE_CD)
+	WHERE CL_CD = #{cl_cd})B ON (PI_ATT.PI_CD = B.PRE_CD)
+</select>
+
+<select id="selectMyCurri" parameterType="int" resultType="CurriculumVO">
+
+	SELECT CURRI_CD, CL_CD, CURRI_NM,CURRI_CD2,CURRI_ORDER,CURRI_ORI_NM,CURRI_TEMP_NM
+	FROM CURRI_VIEW 
+	WHERE CL_CD = #{cl_cd} 
+	ORDER BY CURRI_CD
+</select>
+
+
+
+
+<insert id="insertClass" parameterType="ClassVO">
+	<selectKey resultType="int" keyProperty="cl_cd" order="BEFORE">
+		SELECT CLASS_SEQ.NEXTVAL
+		FROM DUAL
+	</selectKey>
+	INSERT INTO  CLASS (CL_CD, PRE_CD, CL_START, CL_END, CL_FEE, CL_LIKE) 
+	VALUES 	(#{cl_cd},
+			#{pre_cd},
+			#{cl_start},
+			#{cl_end},
+			#{cl_fee},
+			0)
+</insert>
+
+<update id="updateClass" parameterType="ClassVO">
+	UPDATE CLASS 
+	SET 
+		CL_CD = #{cl_cd},
+		PRE_CD = #{pre_cd},
+		CL_START = #{cl_start},
+		CL_END = #{cl_end},
+		CL_FEE = #{cl_fee},
+		CL_LIKE = #{cl_like}
+
+</update>
+
+<select id="selectCreator" parameterType="int" resultType="CreatorVO">
+	SELECT A.*
+	FROM CREATOR A LEFT OUTER JOIN PI B ON (A.CREA_EMAIL = B.CREA_EMAIL) 
+	LEFT OUTER JOIN CLASS C ON (B.PI_CD = C.PRE_CD) 
+	WHERE CL_CD = #{cl_cd}
+</select>
+
+<select id="creatorCheck" parameterType="String" resultType="CreatorVO">
+	SELECT CREA_EMAIL, MEM_INTRO, CREA_DATE
+	FROM CREATOR
+	WHERE CREA_EMAIL = #{mem_email}
+</select>
+
+<select id="selectPaidCheck" parameterType="PaymentVO" resultType="int">
+	SELECT COUNT(*)
+	FROM PAYMENT A LEFT OUTER JOIN CLASS B ON (A.CL_CD = B.CL_CD)
+	WHERE MEM_EMAIL = #{mem_email} AND B.CL_CD = #{cl_cd}
+</select>
+</mapper>

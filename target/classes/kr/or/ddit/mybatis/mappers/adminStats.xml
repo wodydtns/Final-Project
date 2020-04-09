@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminStatsDAO">
+	<select id="selectRisingWord" resultType="RisingVO">
+		SELECT RISING_WORD,
+		RISING_RATE,TO_CHAR(START_DATE,'YYYYMMDD'),TO_CHAR(END_DATE,'YYYYMMDD')
+		FROM RISING
+	</select>
+	<select id="selectTopWord" resultType="TopWordVO">
+		SELECT
+		TOP_WORD,TOP_NUM,TO_CHAR(START_DATE,'YYYYMMDD'),TO_CHAR(END_DATE,'YYYYMMDD')
+		FROM TOP_WORD
+	</select>
+	<select id="creatorTotal" resultType="Integer">
+		SELECT COUNT(*)
+		FROM MEMBER
+		INNER JOIN CREATOR
+		ON MEMBER.MEM_EMAIL = CREATOR.CREA_EMAIL
+	</select>
+	<select id="memberTotal" resultType="Integer">
+		SELECT COUNT(*) FROM MEMBER
+	</select>
+	<select id="ongoingClass" resultType="Integer">
+		SELECT COUNT(*) FROM CLASS
+		WHERE CL_END > SYSDATE
+	</select>
+	<select id="PiClass" resultType="Integer">
+		SELECT COUNT(*) FROM pi
+		WHERE
+		YN_CODE = 'YN_C02'
+	</select>
+	<select id="classRanking" resultType="PIVO">
+		SELECT rank, PI_NM,CL_LIKE
+		FROM (SELECT RANK() OVER ( ORDER BY CL_LIKE DESC) as
+		rank,PI_NM,CL_LIKE FROM CLASS
+		JOIN PI ON (CLASS.PRE_CD = PI.PI_CD))
+		WHERE rank between 1 and 3
+	</select>
+	<select id="projectIngTotal" resultType="Integer">
+		SELECT count(*) FROM
+		PROJ_LIST
+		WHERE PROJ_END > TO_CHAR(SYSDATE,'YYYY-MM-DD')
+	</select>
+	<select id="TrendRanking" resultType="CategoryStatVO">
+		SELECT B.*
+		FROM (SELECT
+		rank() OVER (ORDER BY
+		TOTAL DESC) rank , A.*
+		FROM (SELECT
+		NAME,SUM(COUNT) TOTAL
+		FROM CATEGORY_STAT
+		GROUP BY NAME ORDER BY TOTAL
+		DESC) A) B
+		WHERE rank between 1 and 3
+	</select>
+	<select id="TrendRatio" resultType="CategoryStatVO">
+		SELECT B.*
+		FROM (SELECT rank()
+		OVER (ORDER BY TOTAL DESC) rank , A.*
+		FROM (SELECT
+		NAME,ROUND(SUM(COUNT_LIKES)/SUM(COUNT_DISLIKES),2) TOTAL
+		FROM
+		CATEGORY_STAT
+		GROUP BY NAME ORDER BY TOTAL DESC) A) B
+		WHERE rank between
+		1 and 3
+	</select>
+	<select id="youtubeStatsSeven" resultType="CategoryStatVO">
+		SELECT *
+		FROM (SELECT rank() OVER (ORDER BY COUNT DESC ) rank
+		,NAME,COUNT,AVG,AVG_LIKES,AVG_DISLIKES,AVG_COMMENT
+		FROM CATEGORY_STAT
+		WHERE CATE_DATE = '2017')
+		WHERE rank between 1 and 5
+	</select>
+	<select id="youtubeStatsEight" resultType="CategoryStatVO">
+		SELECT *
+		FROM (SELECT rank() OVER (ORDER BY COUNT DESC ) rank
+		,NAME,COUNT,AVG,AVG_LIKES,AVG_DISLIKES,AVG_COMMENT
+		FROM CATEGORY_STAT
+		WHERE CATE_DATE = '2018')
+		WHERE rank between 1 and 5
+	</select>
+
+
+</mapper>

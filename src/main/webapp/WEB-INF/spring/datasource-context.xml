@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+	<!-- beans, c, p, util, tx -->
+
+	<util:properties id="dbInfo"
+		location="classpath:kr/or/ddit/db/dbInfo.properties" />
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp2.BasicDataSource"
+		p:driverClassName="#{dbInfo.driverClassName}" p:url="#{dbInfo.url}"
+		p:username="#{dbInfo.user}" p:password="#{dbInfo.password}"
+		p:initialSize="#{dbInfo.initialSize}" p:maxTotal="#{dbInfo.maxTotal}"
+		p:maxWaitMillis="#{dbInfo.maxWait}" />
+
+	<!-- 위에있는 데이터소스를 사용해야함. 저기에 정보가 있으니깐. 그럼이렇게 sqlSessionFacotry만들어진거야. -->
+	<!-- 마이바티스와 스프링을 연동, 마이바티스 설정파일 위치를 알려줌. -->
+	<!-- 얘가 현재 싱글톤으로 등록된거야 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean"
+		p:dataSource-ref="dataSource"
+		p:typeAliasesPackage="kr.or.ddit.vo"
+		p:mapperLocations="classpath:kr/or/ddit/mybatis/mappers/*.xml"
+	>
+		<property name="configuration">
+			<bean class="org.apache.ibatis.session.Configuration">
+				<property name="mapUnderscoreToCamelCase" value="false"/>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- SqlSession을 싱글톤처럼 사용 가능. 세션은 이 템플릿 안에서만 생성되는거야. -->
+	<bean id="sqlSessionTemplate"
+		class="org.mybatis.spring.SqlSessionTemplate"
+		c:sqlSessionFactory-ref="sqlSessionFactory" />
+
+	<!-- 저 패키지 아래 있는 애들 중 특정 어노테이션을 가지고 있는 애들만 프록시를 만들어라. IAttatchDAO, IBoardDAO, 
+		IReplyDAOImpl -->
+	<mybatis-spring:scan base-package="kr.or.ddit"
+		annotation="org.springframework.stereotype.Repository" />
+
+	<!-- 데이터소스롤부터 커넥션 생성. 위에있는 데이터소스 사용할수있어야겠지. -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" 
+		p:dataSource-ref="dataSource"
+	/>
+
+	<!-- 오후수업의 핵심: 얘가 어떤 의미인지. transactionManager로 이름맞춰놓아서 추가설정안해도됨.-->
+	<tx:annotation-driven /> <!-- 트랜잭션 관리를 어노테이션으로만 관리하고있음. -->
+</beans>

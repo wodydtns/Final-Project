@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 3. 13.     최효은     최초작성               -->
+<!--  2020. 3. 19.     최효은     검색을 위한 PROGRESS, PRIORITY 추가 -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectOthersDAO">
+	<select id="selecrCategoryList" resultType="CategoryVO">
+		SELECT CATE_CD, CATE_NM
+		FROM CATEGORY
+	</select>
+	<select id="selectProgressList" resultType="ProgressVO">
+		SELECT PROG_CD, PROG_NM
+		FROM PROGRESS
+	</select>
+	<select id="selectPriorityList" resultType="PriorityVO">
+		SELECT PRIOR_CD, PRIOR_NM
+		FROM PRIORITY
+	</select>
+	<select id="selectDeleteYNCheck" resultType="YNCheckVO" >
+		SELECT *
+		FROM YN_CHECK
+		WHERE YN_NAME IN ('탈퇴', '미탈퇴')
+	</select>
+	<select id="selectAgreeYNCheck" resultType="YNCheckVO" >
+		SELECT *
+		FROM YN_CHECK
+		WHERE YN_NAME IN ('수락', '수락대기')
+	</select>
+	<select id="selectMemberWorkCount" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM PROJ_WORK_VIEW
+		WHERE MEM_EMAIL = #{mem_email}
+		AND YN_NAME = '미확인'
+	</select>
+	<select id="selectPMSFeedbackCount" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM FEED_PM_VIEW
+		WHERE TARGET_EMAIL = #{mem_email}
+	</select>
+	<select id="selectProjectMember" parameterType="int" resultType="PMListVO">
+		SELECT	PROJ_CD, PM_CD, MEM_EMAIL, MEM_NICK, CATE_CD, CATE_NM, PROJ_EXP,
+				PROJ_START, PROJ_END, PROJ_LEADER, YN_CODE, YN_CODE2
+		FROM PM_PROJ_VIEW
+		WHERE PROJ_CD = #{proj_cd}
+		AND YN_CODE = 'YN_A02'
+		AND YN_CODE2 = 'YN_E01'
+		ORDER BY PM_CD
+	</select>
+</mapper>

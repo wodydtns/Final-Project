@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.hobby.dao.IHobbyPIDAO">
+	
+	<select id="selectPIList" resultType="classPiAttVO" parameterType="hobbyBestPagingVO">
+		SELECT BB.*
+		FROM(
+		    SELECT ROWNUM RNUM, AA.*
+		    FROM(
+		        SELECT * 
+		        FROM PI A
+		        JOIN PI_ATT B ON (A.PI_CD = B.PI_CD) )AA ) BB
+		        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		        ORDER BY PI_END	
+	</select>
+	
+	<select id="selectPICount" resultType="int">
+		SELECT COUNT(*) 
+		FROM PI A
+		JOIN PI_ATT B ON (A.PI_CD = B.PI_CD)		
+	</select>
+</mapper>

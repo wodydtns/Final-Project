@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.creatorCenter.dao.IClassAttatchDAO">
+
+<select id="selectCurri_SEQ" resultType="int">
+		SELECT CURRICULUM_SEQ.NEXTVAL
+		FROM DUAL
+</select>
+
+<insert id="insertCurriculumTitle" parameterType="curriculumVO">
+		INSERT INTO CURRICULUM(
+				CURRI_CD, 
+				CL_CD, 
+				CURRI_NM, CURRI_ORDER)
+		VALUES(
+				#{curri_cd},
+				#{cl_cd},
+				#{curri_nm},
+				#{curri_order}
+		)
+</insert>
+
+
+<insert id="insertCurriculum" parameterType="classVO">
+		<selectKey keyProperty="startAttNo" resultType="int" order="BEFORE">
+			SELECT CURRICULUM_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT ALL
+		<foreach collection="curriculumList" item="curri" index="idx">	
+		INTO CURRICULUM(
+				CURRI_CD, 
+				CL_CD, 
+				CURRI_NM, 
+				CURRI_CD2, 
+				CURRI_ORDER, 
+				CURRI_TEMP_NM, 
+				CURRI_ORI_NM, 
+				CURRI_SIZE, 
+				CURRI_FANCY, 
+				CURRI_MIME
+		) VALUES (
+				#{startAttNo}+#{idx},
+				#{cl_cd},
+				#{curri.curri_nm},
+				#{curri.curri_cd2},
+				#{curri.curri_order},
+				#{curri.curri_temp_nm},
+				#{curri.curri_ori_nm},
+				#{curri.curri_size},
+				#{curri.curri_fancy},
+				#{curri.curri_mime}
+		)
+		</foreach>
+		SELECT * FROM DUAL
+</insert>
+
+<update id="deleteCurriculum" parameterType="ClassVO">
+	DELETE FROM CURRICULUM
+	WHERE CURRI_CD = #{curri_cd}
+</update>
+
+</mapper>

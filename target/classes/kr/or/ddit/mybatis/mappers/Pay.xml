@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.pay.dao.KakaoPayDAO">
+
+
+<select id="selectMyCoupon" parameterType="String" resultType="CouponClassVO">
+SELECT CP_HAVE_CD,CP_NM, CP_DISC
+FROM COUPON_HAVE A LEFT OUTER JOIN COUPON B ON (A.CP_CD = B.CP_CD)
+WHERE MEM_EMAIL = #{mem_email} AND CP_END_DATE >= SYSDATE AND YN_CODE = 'YN_B02'
+</select>
+
+<update id="insertPay" parameterType="PaymentVO">
+	INSERT INTO  PAYMENT (
+	MEM_EMAIL, 
+	CL_CD, 
+	 <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(cp_have_cd)">
+	CP_HAVE_CD, 
+	</if>
+	PAY_AMT, 
+	FINAL_PAY_AMT, 
+	PAY_DATE) VALUES 
+	(#{mem_email},
+	#{cl_cd},
+	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(cp_have_cd)">
+	#{cp_have_cd},
+	</if>
+	#{pay_amt},
+	#{final_pay_amt},
+	SYSDATE
+	)
+</update>
+
+<update id="updateCouponHave" parameterType="int">
+	UPDATE COUPON_HAVE SET YN_CODE = 'YN_B01' WHERE CP_HAVE_CD = #{cp_have_cd}
+</update>
+
+</mapper>

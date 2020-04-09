@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.pmsproject.dao.IProjectBoardReplyDAO">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2020. 4. 2.     최효은     최초작성               -->
+<!--  Copyright (c) 2020 by DDIT All right reserved -->
+	
+	<select id="selectProjectBoardReplyCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PW_BOARD_COMMENT A LEFT OUTER JOIN PM_LIST B ON (A.PM_CD = B.PM_CD)
+		            LEFT OUTER JOIN MEMBER C ON (B.MEM_EMAIL = C.MEM_EMAIL)
+		WHERE PW_POST_CD = #{searchDetail.stu_post_cd}
+	</select>
+	<select id="selectProjectBoardReplyList" parameterType="PagingVO" resultType="PwBoardCommentVO">
+		SELECT *
+		FROM (  SELECT ROWNUM RNUM, A.*
+                FROM (  SELECT COMM_CD, PW_POST_CD, B.PM_CD, B.MEM_EMAIL, MEM_NICK, PW_COMM_CONT, A.PW_COMM_DATE, A.YN_CODE
+                        FROM PW_BOARD_COMMENT A LEFT OUTER JOIN PM_LIST B ON (A.PM_CD = B.PM_CD)
+                             LEFT OUTER JOIN MEMBER C ON (B.MEM_EMAIL = C.MEM_EMAIL)
+                        WHERE PW_POST_CD = #{searchDetail.stu_post_cd}
+                        ORDER BY COMM_CD DESC) A) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectProjectMember" parameterType="PwBoardCommentVO" resultType="int">
+		SELECT PM_CD
+		FROM PM_LIST
+		WHERE PROJ_CD = #{proj_cd}
+		AND mem_email = #{mem_email}
+	</select>
+	<insert id="insertReply" parameterType="PwBoardCommentVO">
+		INSERT INTO PW_BOARD_COMMENT (
+			COMM_CD, PW_POST_CD, PM_CD,
+			PW_COMM_CONT, PW_COMM_DATE, YN_CODE 
+		) VALUES (
+			PW_BOARD_COMMENT_SEQ.NEXTVAL,
+			#{stu_post_cd},
+			#{pm_cd},
+			#{pw_comm_cont},
+			SYSDATE,
+			'YN_F02'
+		) 
+	</insert>
+	<update id="updateReply" parameterType="PwBoardCommentVO">
+		UPDATE
+			PW_BOARD_COMMENT
+		SET
+			PW_COMM_CONT = #{pw_comm_cont},
+			PW_COMM_DATE = SYSDATE
+		WHERE COMM_CD = #{comm_cd}
+	</update>
+	<delete id="deleteReply" parameterType="PwBoardCommentVO">
+		DELETE FROM PW_BOARD_COMMENT
+		WHERE COMM_CD = #{comm_cd}
+	</delete>
+</mapper>

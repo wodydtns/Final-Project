@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+	<definition name="project" template="/WEB-INF/views/pmsproject-template.jsp">
+		<put-attribute name="preScript" value="/includee/pms/pmsproject-preScript.jsp"></put-attribute>
+		<put-attribute name="pmsproject-header" value="/includee/pms/pmsproject-header.jsp"></put-attribute>
+		<put-attribute name="pmsproject-left" value="/includee/pms/pmsproject-left.jsp"></put-attribute>
+		<put-attribute name="pmsproject-footer" value="/includee/pms/pmsproject-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="projectwork" template="/WEB-INF/views/pmsprojectwork-template.jsp">
+		<put-attribute name="preScript" value="/includee/pms/pmsproject-preScript.jsp"></put-attribute>
+		<put-attribute name="pmsprojectwork-left" value="/includee/pms/pmsprojectwork-left.jsp"></put-attribute>
+		<put-attribute name="pmsproject-header" value="/includee/pms/pmsproject-header.jsp"></put-attribute>
+		<put-attribute name="pmsproject-footer" value="/includee/pms/pmsproject-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="pmsproject/*" extends="project">
+		<put-attribute name="pmsproject-content" value="/WEB-INF/views/pmsproject/{1}.jsp" />
+	</definition>
+	<definition name="pmsprojectwork/*" extends="projectwork">
+		<put-attribute name="pmsprojectwork-content" value="/WEB-INF/views/pmsprojectwork/{1}.jsp" />
+	</definition>
+	
+	
+	
+	<definition name="creatorCenter" template="/WEB-INF/views/creatorCenter-template.jsp">
+		<put-attribute name="preScript" value="/includee/creatorCenter/cc-preScript.jsp"></put-attribute>
+		<put-attribute name="cc-header" value="/includee/creatorCenter/cc-header.jsp"></put-attribute>
+		<put-attribute name="cc-left" value="/includee/creatorCenter/cc-left.jsp"></put-attribute>
+		<put-attribute name="cc-footer" value="/includee/creatorCenter/cc-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="ccStats" template="/WEB-INF/views/createClass-template.jsp">
+		<put-attribute name="preScript" value="/includee/creatorCenter/cc-preScript.jsp"></put-attribute>
+		<put-attribute name="cc-header" value="/includee/creatorCenter/cc-header.jsp"></put-attribute>
+		<put-attribute name="ccl-left" value="/includee/creatorCenter/cc-left.jsp"></put-attribute>
+		<put-attribute name="cc-footer" value="/includee/creatorCenter/cc-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="creatorCenter/*" extends="creatorCenter">
+		<put-attribute name="cc-content" value="/WEB-INF/views/creatorCenter/{1}.jsp"/>
+	</definition>
+	<definition name="ccStats/*" extends="ccStats">
+		<put-attribute name="ccl-content" value="/WEB-INF/views/ccStats/{1}.jsp"/>
+	</definition>
+	
+	
+	<definition name="super" template="/WEB-INF/views/template.jsp">
+		<put-attribute name="preScript" value="/includee/master/preScript.jsp" ></put-attribute>
+		<put-attribute name="header" value="/includee/master/header.jsp" ></put-attribute>
+		<put-attribute name="left" value="/includee/master/left.jsp" ></put-attribute>
+		<put-attribute name="footer" value="/includee/master/footer.jsp"></put-attribute>
+	</definition>
+	<definition name="master/*" extends="super" >
+		<put-attribute name="content" value="/WEB-INF/views/master/{1}.jsp"></put-attribute>
+	</definition>
+	
+	
+	<definition name="hobbymain" template="/WEB-INF/views/hobbymain-template.jsp">
+		<put-attribute name="hobbymain-prescript" value="/includee/hobby/hobbymain-prescript.jsp"></put-attribute>
+		<put-attribute name="hobbymain-header" value="/includee/hobby/hobbymain-header.jsp"></put-attribute>
+		<put-attribute name="hobbymain-footer" value="/includee/hobby/hobbymain-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="hobby/hobbyMain" extends="hobbymain">
+		<put-attribute name="hobbymain-content" value="/WEB-INF/views/hobby/hobbyMain.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="hobbyBest" template="/WEB-INF/views/hobbyBest-template.jsp">
+		<put-attribute name="hobbyBest-header" value="/includee/hobbyBest/hobbyBest-header.jsp"></put-attribute>
+		<put-attribute name="hobbyBest-footer" value="/includee/hobbyBest/hobbyBest-footer.jsp"></put-attribute>
+		<put-attribute name="prescript" value="/includee/hobbyBest/hobbyBest-prescript.jsp"></put-attribute>
+	</definition>
+	<definition name="hobby/hobbyBest" extends="hobbyBest">
+		<put-attribute name="hobbyBest-content" value="/WEB-INF/views/hobby/hobbyBest.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="hobbydetail" template="/WEB-INF/views/hobbydetail-template.jsp">
+		<put-attribute name="preScript" value="/includee/hobbydetail/hobbydetail-prescript.jsp"></put-attribute>
+		<put-attribute name="hobbydetail-header" value="/includee/hobbydetail/hobbydetail-header.jsp"></put-attribute>
+		<put-attribute name="hobbydetail-footer" value="/includee/hobbydetail/hobbydetail-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="hobby/hobbyDetail" extends="hobbydetail">
+		<put-attribute name="hobbydetail-content" value="/WEB-INF/views/hobby/hobbyDetail.jsp"></put-attribute>
+	</definition>
+	<definition name="hobbyCategory" template="/WEB-INF/views/hobbyCategory-template.jsp">
+		<put-attribute name="preScript" value="/includee/hobbyCategory/hobbyCategory-prescript.jsp"></put-attribute>
+		<put-attribute name="hobbyCategory-header" value="/includee/hobbyCategory/hobbyCategory-header.jsp"></put-attribute>
+		<put-attribute name="hobbyCategory-footer" value="/includee/hobbyCategory/hobbyCategory-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="hobby/hobbyCategory" extends="hobbyCategory">
+		<put-attribute name="hobbyCategory-content" value="/WEB-INF/views/hobby/hobbyCategory.jsp"></put-attribute>
+	</definition>
+	<definition name="hobbyPI" template="/WEB-INF/views/hobbyPI-template.jsp">
+		<put-attribute name="hobbyPI-header" value="/includee/hobbyPI/hobbyPI-header.jsp"></put-attribute>
+		<put-attribute name="hobbyPI-footer" value="/includee/hobbyPI/hobbyPI-footer.jsp"></put-attribute>
+		<put-attribute name="prescript" value="/includee/hobbyPI/hobbyPI-prescript.jsp"></put-attribute>
+	</definition>
+	<definition name="hobby/hobbyPI" extends="hobbyPI">
+		<put-attribute name="hobbyPI-content" value="/WEB-INF/views/hobby/hobbyPI.jsp"></put-attribute>
+	</definition>
+	
+	
+	<definition name="mypagemain" template="/WEB-INF/views/mypagemain-template.jsp">
+		<put-attribute name="preScript" value="/includee/mypage/mypagemain-prescript.jsp"></put-attribute>
+		<put-attribute name="mypagemain-header" value="/includee/mypage/mypagemain-header.jsp"></put-attribute>
+		<put-attribute name="mypagemain-left" value="/includee/mypage/mypagemain-left.jsp"></put-attribute>
+		<put-attribute name="mypagemain-footer" value="/includee/mypage/mypagemain-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="mypage/*" extends="mypagemain">
+		<put-attribute name="mypagemain-content" value="/WEB-INF/views/mypage/{1}.jsp"></put-attribute>
+	</definition>
+		
+	<definition name="recruitmain" template="/WEB-INF/views/recruitmain-template.jsp">
+		<put-attribute name="recruitmain-prescript" value="/includee/recruit/recruitmain-prescript.jsp"></put-attribute>
+		<put-attribute name="recruitmain-header" value="/includee/recruit/recruitmain-header.jsp"></put-attribute>
+		<put-attribute name="recruitmain-footer" value="/includee/recruit/recruitmain-footer.jsp"></put-attribute>
+	</definition>
+	<definition name="recruit/*" extends="recruitmain">
+		<put-attribute name="recruitmain-content" value="/WEB-INF/views/recruit/{1}.jsp"></put-attribute>
+	</definition>
+</tiles-definitions>

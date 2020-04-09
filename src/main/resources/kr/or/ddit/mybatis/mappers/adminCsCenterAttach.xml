@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminCenterAttachDAO">
+	<select id="selectAttach" parameterType="int" resultType="kr.or.ddit.vo.CsCenterAttVO">
+		SELECT ST_CD,CS_CD,TEMP_NM,ORI_NM,CS_SIZE,FANCY,MIME
+		FROM CS_CENTER_ATT 
+		WHERE CS_CD = #{cs_cd}
+	</select>
+	
+	<insert id="insertAttach" parameterType="kr.or.ddit.vo.CsCenterVO">
+		<selectKey resultType="int" keyProperty="startSt_cd" order="BEFORE">
+			SELECT NVL(MAX(ST_CD),0)+1 FROM CS_CENTER_ATT
+		</selectKey>
+		INSERT ALL
+		<foreach collection="attachList" item="attach" index ="idx">
+		 INTO CS_CENTER_ATT
+        (
+        ST_CD,CS_CD,TEMP_NM,ORI_NM,CS_SIZE,FANCY,MIME
+		) VALUES  (
+		 #{startSt_cd}+#{idx},#{cs_cd},#{attach.temp_nm},#{attach.ori_nm},#{attach.cs_size},#{attach.fancy},#{attach.mime}
+		 )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	<delete id="deleteAttach" parameterType="kr.or.ddit.vo.CsCenterVO">
+		DELETE FROM CS_CENTER_ATT
+		WHERE ST_CD IN
+		<foreach collection="delStNos" item="stcd" open="(" close=")" separator=",">
+			#{st_cd}
+		</foreach>
+	</delete>
+</mapper>

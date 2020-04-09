@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminCsCenterDAO">
+	<sql id="searchFrag">
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'content'.equals(searchVO.searchType)">
+						CS_CONT LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"title".equals(searchVO.searchType)'>
+						CS_TITLE LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						CS_CONT LIKE '%'||#{searchVO.searchWord}||'%' OR
+						CS_TITLE LIKE '%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<select id="selectCsCenterBoardList"
+		parameterType="kr.or.ddit.vo.PagingVO"
+		resultType="kr.or.ddit.vo.CsCenterVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM rn,A.*
+		FROM (SELECT
+		ADMIN_ID,A.CS_CD,A.CS_BO_CD,CS_TITLE,CS_CONT,CS_DATE,CS_HIT
+		,CS_BO_NM,HEADER_NM
+		FROM CS_CENTER A
+		LEFT OUTER JOIN CS_BOARD B ON (A.CS_BO_CD = B.CS_BO_CD)
+		LEFT OUTER JOIN
+		NOTICE_HEADER B ON (A.HEADER_CD = B.HEADER_CD)
+		
+		WHERE A.CS_BO_CD = 'C001'
+		ORDER
+		BY CS_DATE DESC) A
+		<include refid="searchFrag" />
+		) B
+		WHERE rn between #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectCSCenterBoardTotal" resultType="Integer">
+		SELECT COUNT(*)
+		FROM (SELECT ROWNUM rn,A.*
+		FROM (SELECT
+		ADMIN_ID,A.CS_CD,A.CS_BO_CD,CS_TITLE,CS_CONT,CS_DATE,CS_HIT
+		,TEMP_NM,ORI_NM,CS_SIZE,FANCY,MIME,CS_BO_NM,HEADER_NM
+		FROM CS_CENTER A
+		LEFT OUTER JOIN CS_BOARD B ON (A.CS_BO_CD = B.CS_BO_CD)
+		LEFT OUTER JOIN
+		NOTICE_HEADER B ON (A.HEADER_CD = B.HEADER_CD)
+		LEFT OUTER JOIN
+		CS_CENTER_ATT B ON (A.CS_CD = B.CS_CD)
+		WHERE A.CS_BO_CD = 'C001'
+		ORDER
+		BY CS_DATE DESC) A
+		<include refid="searchFrag" />
+		) B
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.CsCenterVO" id="centerMap" autoMapping="true">
+		<id property="cs_cd" column="CS_CD"/>
+		<collection property="attachList" 
+			ofType="kr.or.ddit.vo.CsCenterAttVO" autoMapping="true" />
+	</resultMap>
+	<select id="selectCsCenterBoard" parameterType="int" resultMap="centerMap">
+		SELECT ADMIN_ID, CS_CD ,  A.CS_BO_CD,CS_TITLE,CS_CONT,CS_DATE,CS_HIT
+		,TEMP_NM,ORI_NM,CS_SIZE,FANCY,MIME,CS_BO_NM
+		FROM 
+		(SELECT
+		ADMIN_ID,  A.CS_CD ,  A.CS_BO_CD,CS_TITLE,CS_CONT,CS_DATE,CS_HIT
+		,TEMP_NM,ORI_NM,CS_SIZE,FANCY,MIME,CS_BO_NM
+		FROM CS_CENTER A
+		LEFT OUTER JOIN CS_BOARD B ON (A.CS_BO_CD = B.CS_BO_CD)
+		LEFT OUTER JOIN NOTICE_HEADER B ON (A.HEADER_CD = B.HEADER_CD)
+		LEFT OUTER JOIN CS_CENTER_ATT B ON (A.CS_CD = B.CS_CD)
+		WHERE A.CS_BO_CD = 'C001' ) A
+		WHERE CS_CD = #{cs_cd}
+	</select>
+	
+	<select id="selectHeaderList" resultType="kr.or.ddit.vo.CsCenterVO">
+		SELECT UNIQUE(CS_BO_NM) CS_BO_NM ,header_nm
+		FROM CS_CENTER A left outer JOIN NOTICE_HEADER B ON (A.HEADER_CD = B.HEADER_CD)
+		INNER JOIN CS_BOARD B ON (A.CS_BO_CD = B.CS_BO_CD)
+	</select>
+	<insert id="writeCsCenterBoard" parameterType="kr.or.ddit.vo.CsCenterVO">
+		<selectKey resultType="int" keyProperty="cs_cd" order="BEFORE">
+	 		SELECT NVL(MAX(CS_CD),0)+1             
+			FROM (SELECT CS_CD FROM CS_CENTER A INNER JOIN
+	 		CS_BOARD B ON (A.CS_BO_CD=B.CS_BO_CD)
+            )
+		</selectKey>
+		INSERT INTO CS_CENTER (
+			CS_CD, ADMIN_ID,CS_BO_CD,HEADER_CD
+			,CS_TITLE,CS_CONT,CS_DATE,CS_HIT
+		) VALUES (
+			#{cs_cd}, 'admin',#{cs_bo_cd},#{header_cd,jdbcType=CHAR}
+			,#{cs_title},#{cs_cont},SYSDATE,0
+		)
+	</insert> 
+	<update id="updateCsCenterBoard" parameterType="kr.or.ddit.vo.CsCenterVO">
+		UPDATE CS_CENTER
+		SET  
+		CS_BO_CD = #{cs_bo_cd},
+		HEADER_CD = #{header_cd},
+		CS_TITLE = #{cs_title},
+		CS_CONT = #{cs_cont},
+		CS_DATE = SYSDATE
+		WHERE CS_CD = #{cs_cd}
+	</update>
+	<update id="incrementHit" parameterType="int">
+		UPDATE CS_CENTER
+		SET CS_HIT = CS_HIT +1
+		WHERE CS_CD = #{cs_cd}
+	</update>
+	<delete id="deleteCsCenterBoard" parameterType="kr.or.ddit.vo.CsCenterVO" statementType="CALLABLE" >
+		{
+			CALL CENTERDELETEBOARD(#{cs_cd,mode=IN,javaType=INTEGER},#{rowcnt,mode=OUT,jdbcType=INTEGER})
+		}
+	</delete>
+</mapper>

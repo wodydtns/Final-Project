@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminMemberManageDAO">
+	<sql id="searchFrag">
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'email'.equals(searchVO.searchType)">
+						MEM_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"hp".equals(searchVO.searchType)'>
+						MEM_HP LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"nick".equals(searchVO.searchType)'>
+						MEM_NICK LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						MEM_EMAIL LIKE '%'||#{searchVO.searchWord}||'%' OR
+						MEM_HP LIKE '%'||#{searchVO.searchWord}||'%' OR
+						MEM_NICK LIKE
+						'%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<!-- 일반 회원 리스트 -->
+	<select id="selectMemberList" parameterType="PagingVO"
+		resultType="MemberVO">
+		SELECT B.*
+		FROM (SELECT A.*
+		FROM (SELECT rownum
+		rn,MEM_EMAIL,MEM_NICK,MEM_HP,REG_DATE,YN_CODE FROM MEMBER
+		WHERE NOT EXISTS
+		(SELECT CREA_EMAIL FROM CREATOR
+		WHERE MEMBER.MEM_EMAIL =
+		CREATOR.CREA_EMAIL
+		UNION
+		SELECT ADMIN_ID FROM ADMIN
+		WHERE
+		MEMBER.MEM_EMAIL = ADMIN.ADMIN_ID
+		UNION SELECT MEM_EMAIL FROM COMPANY
+		WHERE MEMBER.MEM_EMAIL = COMPANY.MEM_EMAIL)) A
+		WHERE YN_CODE ='YN_A02' 
+		<include refid="searchFrag" />
+		) B
+		WHERE rn between
+		#{startRow} AND #{endRow}
+	</select>
+	<select id="selectMemberCount" resultType="Integer">
+		SELECT COUNT(*)
+		FROM (SELECT * FROM MEMBER
+		WHERE NOT EXISTS
+		(SELECT
+		CREA_EMAIL FROM
+		CREATOR
+		WHERE MEMBER.MEM_EMAIL = CREATOR.CREA_EMAIL
+		UNION
+		SELECT ADMIN_ID
+		FROM
+		ADMIN
+		WHERE MEMBER.MEM_EMAIL = ADMIN.ADMIN_ID
+		UNION SELECT
+		MEM_EMAIL FROM
+		COMPANY
+		WHERE MEMBER.MEM_EMAIL =
+		COMPANY.MEM_EMAIL
+		)) A
+		WHERE YN_CODE ='YN_A02'
+		<include refid="searchFrag" />
+	</select>
+	<!-- 크리에이터 리스트 -->
+	<select id="selectCreatorList" parameterType="PagingVO"
+		resultType="MemberVO">
+		SELECT B.*
+		FROM (SELECT A.*
+		FROM (SELECT rownum
+		rn,MEM_EMAIL,MEM_NICK,MEM_HP,REG_DATE,YN_CODE
+		FROM MEMBER M JOIN CREATOR C ON
+		(M.MEM_EMAIL = C.CREA_EMAIL)) A
+		WHERE YN_CODE ='YN_A02'
+		<include refid="searchFrag" />
+		) B
+		WHERE rn between #{startRow} AND #{endRow}
+	</select>
+	<select id="selectCreatorCount" resultType="Integer">
+		SELECT COUNT(*)
+		FROM (SELECT A.*
+		FROM (SELECT rownum
+		rn,MEM_EMAIL,MEM_NICK,MEM_HP,REG_DATE,YN_CODE
+		FROM MEMBER M JOIN CREATOR C ON
+		(M.MEM_EMAIL = C.CREA_EMAIL)) A
+		WHERE YN_CODE ='YN_A02'
+		<include refid="searchFrag" />
+		) B
+	</select>
+	<!-- 기업회원 리스트 -->
+	<select id="selectCompanyList" parameterType="PagingVO"
+		resultType="MemberVO">
+		SELECT B.*
+		FROM (SELECT A.*
+		FROM (SELECT
+		rownum
+		rn,M.MEM_EMAIL,MEM_NICK,MEM_HP,REG_DATE,YN_CODE
+		FROM MEMBER M
+		JOIN COMPANY C ON
+		(M.MEM_EMAIL = C.MEM_EMAIL)) A
+		WHERE YN_CODE ='YN_A02'
+		<include refid="searchFrag" />
+		) B
+		WHERE rn between #{startRow} AND #{endRow}
+	</select>
+	<select id="selectCompanyCount" resultType="Integer">
+		SELECT COUNT(*)
+		FROM (SELECT A.*
+		FROM (SELECT
+		rownum
+		rn,M.MEM_EMAIL,MEM_NICK,MEM_HP,REG_DATE,YN_CODE
+		FROM MEMBER M
+		JOIN COMPANY C ON
+		(M.MEM_EMAIL = C.MEM_EMAIL)) A
+		WHERE YN_CODE ='YN_A02'
+		<include refid="searchFrag" />
+		) B
+	</select>
+	<select id="selectBlockList" parameterType="PagingVO"
+		resultType="ReportVO">
+		SELECT B.*
+		FROM (SELECT A.*
+		FROM (SELECT ROWNUM
+		rn,REPORT_EMAIL,REPORTED_EMAIL,REP_URL
+		,REP_REASON_ECT,REP_DATE
+		FROM
+		REPORT A INNER JOIN REPOST_REASON B
+		ON (A.REP_REASON_CD =
+		B.REP_REASON)) A
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'report'.equals(searchVO.searchType)">
+						REPORT_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"reported".equals(searchVO.searchType)'>
+						REPORTED_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						REPORT_EMAIL LIKE '%'||#{searchVO.searchWord}||'%' OR
+						REPORTED_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+		) B
+		WHERE rn between #{startRow} AND #{endRow}
+	</select>
+	<select id="selectBlockCount" resultType="Integer">
+		SELECT COUNT(*)
+		FROM (SELECT A.*
+		FROM (SELECT ROWNUM rn,REPORT_EMAIL,REPORTED_EMAIL,REP_URL
+		,REP_REASON_ECT,REP_DATE
+		FROM REPORT A INNER JOIN REPOST_REASON B
+		ON (A.REP_REASON_CD = B.REP_REASON)) A
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'report'.equals(searchVO.searchType)">
+						REPORT_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"reported".equals(searchVO.searchType)'>
+						REPORTED_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						REPORT_EMAIL LIKE '%'||#{searchVO.searchWord}||'%' OR
+						REPORTED_EMAIL LIKE '%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+		) B
+		
+	</select>
+	<update id="deleteMember" parameterType="String" >
+		UPDATE MEMBER
+		SET YN_CODE = 'YN_A01' WHERE MEM_EMAIL =#{mem_email}
+	</update>
+</mapper>

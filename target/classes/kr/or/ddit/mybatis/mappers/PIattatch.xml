@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.creatorCenter.dao.IPiAttatchDAO">
+<insert id="insertAttach" parameterType="PIVO">
+		INSERT INTO PI_ATT (
+				PI_CD     ,
+				TEMP_NM   ,
+				ORI_NM    ,
+				REV_SIZE  ,
+				FANCY     ,
+				MIME	
+			) VALUES (
+				#{pi_cd},
+				#{pi_att.temp_nm},
+				#{pi_att.ori_nm},
+				#{pi_att.rev_size},
+				#{pi_att.fancy},
+				#{pi_att.mime}
+			)
+</insert>
+
+<update id="deleteAttatch" parameterType="int">
+	DELETE FROM PI_ATT
+	WHERE PI_CD = #{pi_cd}
+</update>
+	
+	
+</mapper>

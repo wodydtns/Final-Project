@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+	<!-- 하위 컨테이너에서 공통으로 사용할 공통빈. -->
+	<!-- 웹에 종속되지 않는 일반 빈을 등록. controller는 웹 상관있지만 dao, service는 상관없음.
+		dao, service는 여기 상위에 등록 -->
+
+
+	<util:properties id="appInfo" location="classpath:kr/or/ddit/appInfo.properties" />
+		<!-- coc에따라 이 리스트의 구현체는 arraylist가 되었겠지 -->
+		<!-- 상하위컨테이너 어디에서든 주입받을 수 있는 빈이 되도록 여기에 넣음. (웹소켓) -->
+		
+		<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+			<context:include-filter type="annotation" expression="org.springframework.stereotype.Component"/>
+			<context:include-filter type="annotation" expression="org.aspectj.lang.annotation.Aspect"/>
+			<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+			<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+		</context:component-scan>
+	
+	
+</beans>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IAdminClassManageDAO">
+<sql id="searchFrag">
+	<if test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+			<choose>
+					<when test='"pinm".equals(searchVO.searchType)'>
+					   AND PI_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"lodnm".equals(searchVO.searchType)'>
+						AND LOD_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"catenm".equals(searchVO.searchType)'>
+						 AND CATE_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						AND CATE_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						LOD_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						PI_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+		</if>
+</sql>
+<sql id="doingFrag">
+		<where>
+			<if
+				test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test='"pinm".equals(searchVO.searchType)'>
+					   AND PI_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"lodnm".equals(searchVO.searchType)'>
+						AND LOD_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<when test='"catenm".equals(searchVO.searchType)'>
+						 AND CATE_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</when>
+					<otherwise>
+						AND CATE_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						LOD_NM LIKE '%'||#{searchVO.searchWord}||'%' OR
+						PI_NM LIKE '%'||#{searchVO.searchWord}||'%'
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<select id="selectPIList" parameterType="kr.or.ddit.vo.PagingVO" resultType="kr.or.ddit.vo.PIVO">
+		SELECT A.*
+		FROM ( SELECT ROWNUM rnum,PI_CD,CREA_EMAIL,PI_NM,PI_INTRO,PI_ADD_INFO
+		,PI_START,PI_END,PI_OPEN,PI_CNT
+		,LOD_NM,CATE_NM
+		FROM PI A
+		LEFT OUTER JOIN CATEGORY B ON (A.CATE_CD = B.CATE_CD)
+		LEFT OUTER JOIN LOD C ON (A.LOD_CD=C.LOD_CD)
+		WHERE YN_CODE ='YN_C06' AND CLASS_YN ='YN_G02'
+		<include refid="searchFrag"/>
+		) A
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<update id="acceptPI" parameterType="int">
+		UPDATE PI
+     	SET YN_CODE ='YN_C04'
+ 		WHERE PI_CD = #{pi_cd}
+	</update>
+	<update id="denyPI" parameterType="int">
+		UPDATE PI
+     	SET YN_CODE ='YN_C05'
+ 		WHERE PI_CD = #{pi_cd}
+ 	</update>
+ 	<select id="PIListToTalCount" resultType="int">
+ 		SELECT COUNT(*)
+		FROM PI A
+		LEFT OUTER JOIN CATEGORY B ON (A.CATE_CD = B.CATE_CD)
+		LEFT OUTER JOIN LOD C ON (A.LOD_CD=C.LOD_CD)
+		WHERE YN_CODE ='YN_C06' AND CLASS_YN ='YN_G02'
+		<include refid="searchFrag"/>
+ 	</select>
+ 	<select id="selectPreTestList" parameterType="kr.or.ddit.vo.PagingVO" resultType="kr.or.ddit.vo.PIVO">
+ 			SELECT A.*
+		FROM ( SELECT ROWNUM rnum,PI_CD,CREA_EMAIL,PI_NM,PI_INTRO,PI_ADD_INFO
+		,PI_START,PI_END,PI_OPEN,PI_CNT
+		,LOD_NM,CATE_NM
+		FROM PI A
+		LEFT OUTER JOIN CATEGORY B ON (A.CATE_CD = B.CATE_CD)
+		LEFT OUTER JOIN LOD C ON (A.LOD_CD=C.LOD_CD)
+		WHERE YN_CODE ='YN_C02' AND CLASS_YN ='YN_G02'
+		<include refid="searchFrag"/>
+		) A
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+ 	</select>
+ 	<select id="PreTestListTotal" resultType="int">
+ 		SELECT COUNT(*)
+		FROM (SELECT ROWNUM rnum ,A.*
+		FROM ( SELECT PI_CD,CREA_EMAIL,PI_NM,PI_INTRO,PI_ADD_INFO
+		,PI_START,PI_END,PI_OPEN,PI_CNT
+		,LOD_NM,CATE_NM
+		FROM PI A
+		LEFT OUTER JOIN CATEGORY B ON (A.CATE_CD = B.CATE_CD)
+		LEFT OUTER JOIN LOD C ON (A.LOD_CD=C.LOD_CD)
+		WHERE YN_CODE ='YN_C02' AND CLASS_YN ='YN_G02'
+		ORDER BY PI_CNT DESC
+		) A <include refid="searchFrag"/> )
+		 
+ 	</select>
+ 	<select id="selectDoingList" resultType="kr.or.ddit.vo.DoingClassVO">
+ 		SELECT PI_NM,CL_START,CL_END FROM CLASS A
+		LEFT OUTER JOIN PI B
+		ON A.PRE_CD = B.PI_CD
+ 	</select>
+ 	
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.creatorCenter.dao.IStatsDAO">
+
+<select id="selectProfit" parameterType="String" resultType="ccStatsVO">
+SELECT C.*, CL_LIKE FROM CLASS, (SELECT CL_CD, COUNT(*) AS STU_CNT,SUM(FINAL_PAY_AMT) 
+AS PAY_AMT FROM PAYMENT WHERE PAYMENT.CL_CD IN (SELECT CL_CD FROM CL_PI_VIEW WHERE CREA_EMAIL 
+= #{crea_email}) GROUP BY CL_CD ) C WHERE C.CL_CD = CLASS.CL_CD
+</select>
+
+<select id="selectClLike" parameterType="String" resultType="ccStatsVO">
+	SELECT CL_CD,PI_NM,CL_LIKE FROM CL_PI_VIEW WHERE CREA_EMAIL = #{crea_email}
+</select>
+
+<select id="selectStuCnt" parameterType="String" resultType="ccStatsVO">
+	SELECT B.* , PI_NM
+	FROM PI ,
+	(SELECT CL_CD, COUNT(*) AS 수강생수
+	FROM PAYMENT
+	WHERE PAYMENT.CL_CD IN
+	(SELECT CL_CD FROM CL_PI_VIEW WHERE CREA_EMAIL = #{crea_email})
+	GROUP BY CL_CD )B
+	WHERE PI.PI_CD = B.CL_CD
+</select>
+</mapper>
