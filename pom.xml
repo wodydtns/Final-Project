@@ -20,7 +20,7 @@
 	</build>
 	<properties>
 		<java-version>1.8</java-version>
-		<log4j-version>2.13.0</log4j-version>
+		<log4j-version>2.13.3</log4j-version>
 		<org.slf4j-version>1.7.9</org.slf4j-version>
 		<org.springframework-version>4.3.26.RELEASE</org.springframework-version>
 		<org.springframework.security-version>4.2.14.RELEASE</org.springframework.security-version>
